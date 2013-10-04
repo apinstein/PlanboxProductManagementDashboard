@@ -1,0 +1,77 @@
+// vim: ts=2 sw=2 :
+var PlanboxPMApp = angular.module('PlanboxPMApp', [])
+    .constant('PlanboxProductId', '6887')
+    .constant('PlanboxPMProjectId', '10467')
+    .controller('PMListController', function($http, $scope, PlanboxProductId, PlanboxPMProjectId) {
+      $scope.selectOptions = {
+        'pm_revenue' : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
+        'pm_time'    : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
+        'pm_fit'     : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
+        'pm_risk'    : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' }
+      };
+      $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK').success(function(data) {
+        // project_id filter doesn't seem to work
+        var pmStories = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
+
+        _.each(pmStories, function(o) {
+          o.tags = o.tags || '';
+          _.each(o.tags.split(','), function(tag) {
+            var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
+            _.each(pmInfo, function(pmTag) {
+              var mm = null;
+              var regex = new RegExp("^"+pmTag+"_([0-9])");
+              if (mm = tag.match(regex))
+              {
+                  o[pmTag] = mm[1];
+              }
+            });
+          });
+        });
+
+        // ignore stories w/o pm tags
+        //pmStories = _.filter(pmStories, function(o) { return typeof o.pm_revenue !== 'undefined' });
+        $scope.pmStories = pmStories;
+      });
+
+      $scope.$watch('pmStories', function(newStory, oldStory) {
+        if (typeof newStory === 'undefined' || !newStory.length) return;
+
+        var updatedStory = newStory[0];
+        //console.log(updatedStory);
+
+        pbPmTagify(updatedStory);
+        $http.post('http://www.planbox.com/api/update_story',
+            $.param({
+              'story_id' : updatedStory.id,
+              'name'     : updatedStory.name,
+              'tags'     : updatedStory.tags
+            }),
+            {
+              'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
+            })
+             .success(function() { console.log('udpated!') })
+             .error(function() { console.error('oh shit') })
+      }, true);
+    });
+
+function pbPmTagify(story) {
+  var tags = story.tags || '';
+  tags = tags.split(',');
+
+  // clear existing pm_* tags
+  tags = _.reject(tags, function(tag) {
+    var regex = new RegExp("^pm_.*");
+    return tag.match(regex);
+  });
+
+  var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
+  _.each(pmInfo, function(pmTag) {
+    if (typeof story[pmTag] !== 'undefined' && story[pmTag])
+    {
+      tags.push(pmTag + '_' + story[pmTag]);
+    }
+  });
+
+  story.tags = tags.join(',');
+}
+

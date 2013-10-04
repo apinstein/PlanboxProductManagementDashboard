@@ -1,0 +1,40 @@
+<!doctype html>
+<html ng-app="PlanboxPMApp">
+  <head>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="angular.js"></script>
+    <script src="lodash.js"></script>
+    <script src="app.js"></script>
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="container">
+  <h1>Product Management</h1>
+  <div ng-controller="PMListController">
+      <table class="table">
+          <tr>
+              <th>Name</th>
+              <th>PM Revenue</th>
+              <th>PM Time</th>
+              <th>PM Risk</th>
+              <th>PM Fit</th>
+          </tr>
+          <tr ng-repeat="story in pmStories">
+              <td><a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.id}}" target="planbox">{{story.name}}</a></td>
+              <td>
+                  <select ng-model="story.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
+              </td>
+              <td>
+                  <select ng-model="story.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
+              </td>
+              <td>
+                  <select ng-model="story.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
+              </td>
+              <td>
+                  <select ng-model="story.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
+              </td>
+          </tr>
+      </table>
+  </div>
+  </body>
+</html>
+
