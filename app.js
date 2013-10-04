@@ -51,7 +51,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', [])
               'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
             })
              .success(function() { console.log('udpated!') })
-             .error(function() { console.error('oh shit') })
+             .error(function() { alert('could not save data, refresh and try again') })
       }, true);
     });
 
