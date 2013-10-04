@@ -15,8 +15,8 @@
               <th>Name</th>
               <th>PM Revenue</th>
               <th>PM Time</th>
-              <th>PM Risk</th>
               <th>PM Fit</th>
+              <th>PM Risk</th>
           </tr>
           <tr ng-repeat="story in pmStories">
               <td><a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.id}}" target="planbox">{{story.name}}</a></td>
@@ -27,10 +27,10 @@
                   <select ng-model="story.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
               </td>
               <td>
-                  <select ng-model="story.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
+                  <select ng-model="story.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
               </td>
               <td>
-                  <select ng-model="story.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
+                  <select ng-model="story.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
               </td>
           </tr>
       </table>

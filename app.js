@@ -4,10 +4,11 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', [])
     .constant('PlanboxPMProjectId', '10467')
     .controller('PMListController', function($http, $scope, PlanboxProductId, PlanboxPMProjectId) {
       $scope.selectOptions = {
-        'pm_revenue' : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
-        'pm_time'    : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
-        'pm_fit'     : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' },
-        'pm_risk'    : { '': 'n/a', '1': 'Little', '2': 'Some', '3': 'More', '4': 'Go to sizzler' }
+        // 1 is always "most attractive to do"
+        'pm_revenue' : { '': 'n/a', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
+        'pm_time'    : { '': 'n/a', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
+        'pm_fit'     : { '': 'n/a', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
+        'pm_risk'    : { '': 'n/a', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
       };
       $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK').success(function(data) {
         // project_id filter doesn't seem to work
