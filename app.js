@@ -13,7 +13,8 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize'])
       $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK').success(function(data) {
         // project_id filter doesn't seem to work
         var pmStories = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
-    pmStories = pmStories.slice(0, 10);
+        pmStories = pmStories.slice(0, 10);
+        console.log(pmStories[0]);
 
         _.each(pmStories, function(o) {
           o.tags = o.tags || '';

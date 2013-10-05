@@ -1,5 +1,7 @@
 <!doctype html>
 <html ng-app="PlanboxPMApp">
+  <!-- vim: ts=2 sw=2 :
+  -->
   <head>
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
@@ -25,9 +27,17 @@
                   <!--
                   <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.id}}" target="planbox">{{story.name}}</a>
                   -->
-                  <p ng-click="showStoryDetails = !showStoryDetails"><strong>{{story.name}}</strong></p>
+                  <h4 ng-click="showStoryDetails = !showStoryDetails">{{story.name}}</h4>
                   <div ng-show="showStoryDetails">
-                      <div ng-bind-html="story.description"></div>
+                    <h5>Tasks</h5>
+                    <ul>
+                      <li ng-repeat="task in story.tasks">
+                        <strong>{{task.name}}</strong>
+                        <p ng-show="task.description">{{task.description}}</p>
+                      </li>
+                    </ul>
+                    <h5>Description</h5>
+                    <div ng-bind-html="story.description"></div>
                   </div>
               </td>
               <td>
