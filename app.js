@@ -1,8 +1,8 @@
 // vim: ts=2 sw=2 :
-var PlanboxPMApp = angular.module('PlanboxPMApp', [])
+var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize'])
     .constant('PlanboxProductId', '6887')
     .constant('PlanboxPMProjectId', '10467')
-    .controller('PMListController', function($http, $scope, PlanboxProductId, PlanboxPMProjectId) {
+    .controller('PMListController', function($http, $scope, $sanitize, PlanboxProductId, PlanboxPMProjectId) {
       $scope.selectOptions = {
         // 1 is always "most attractive to do"
         'pm_revenue' : { '': 'n/a', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
@@ -13,6 +13,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', [])
       $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK').success(function(data) {
         // project_id filter doesn't seem to work
         var pmStories = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
+    pmStories = pmStories.slice(0, 10);
 
         _.each(pmStories, function(o) {
           o.tags = o.tags || '';

@@ -1,0 +1,27 @@
+{
+  "author": "Francesco Pontillo",
+  "name": "angular-filters",
+  "description": "A collection of filters for AngularJS.",
+  "version": "1.0.0",
+  "homepage": "https://github.com/frapontillo/angular-filters",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/frapontillo/angular-filters.git"
+  },
+  "main": "./build/angular-filters.min.js",
+  "dependencies": {
+    "angular": ">= 1.0.8"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.0.8"
+  },
+  "_release": "1.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.0.0",
+    "commit": "4bfab6e64c937a3154b031305a0ba6b350b5c728"
+  },
+  "_source": "git://github.com/frapontillo/angular-filters.git",
+  "_target": "1.0.0",
+  "_originalSource": "angular-filters"
+}
