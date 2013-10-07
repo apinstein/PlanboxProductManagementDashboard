@@ -5,6 +5,7 @@
   <head>
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="bower_components/angular/angular.js"></script>
+    <script src="angular-tbUtils.js"></script>
     <script src="bower_components/angular-filters/build/angular-filters.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/lodash/dist/lodash.js"></script>
@@ -21,8 +22,9 @@
               <th>PM Time</th>
               <th>PM Fit</th>
               <th>PM Risk</th>
+              <th>Score</th>
           </tr>
-          <tr ng-repeat="story in pmStories">
+          <tr ng-repeat="story in pmStories" ng-controller="PMItemController">
               <td>
                   <!--
                   <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.id}}" target="planbox">{{story.name}}</a>
@@ -52,6 +54,7 @@
               <td>
                   <select ng-model="story.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
               </td>
+              <td>{{story.weightedPm}}</td>
           </tr>
       </table>
   </div>
