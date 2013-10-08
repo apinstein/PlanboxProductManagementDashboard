@@ -24,23 +24,23 @@
        * @param {object} The scope context to add the computed property to.
        * @param {string} The keyPath in the scope where the computed property value should be exposed.
        * @param {string} A $scope.$watchCollection compatible string with the list of dependencies.
-       * @param {function($scope)} The function that actually computes the value.
+       * @param {function(scope)} The function that actually computes the value.
        * @returns void
        *
        * @todo Refactor into appropriate pluggable component for angular?
        */
-      createComputedProperty: function($scope, computedPropertyPath, dependentProperties, f) {
-        //console.log($scope.$id, ': creating computed prop: ', computedPropertyPath);
-        function assignF($scope) {
-          var computedVal = f($scope);
+      createComputedProperty: function(scope, computedPropertyPath, dependentProperties, f) {
+        //console.log(scope.$id, ': creating computed prop: ', computedPropertyPath);
+        function assignF(scope) {
+          var computedVal = f(scope);
 
           // todo: use $parse.setter?
           var keyPathParts = computedPropertyPath.split('.');
           var computedPropertyName = keyPathParts.slice(-1)[0];
           var targetObjKeyPathParts = keyPathParts.slice(0,-1);
-          //console.log('computing ', computedPropertyName, ' at ', targetObjKeyPathParts.join('.'), ' for ', $scope.$id, $scope, ' result: ', computedVal);
+          //console.log('computing ', computedPropertyName, ' at ', targetObjKeyPathParts.join('.'), ' for ', scope.$id, scope, ' result: ', computedVal);
 
-          var targetObj = $scope;
+          var targetObj = scope;
           angular.forEach(targetObjKeyPathParts, function(propPart) {
             targetObj = targetObj[propPart];
           });
@@ -48,10 +48,10 @@
           targetObj[computedPropertyName] = computedVal;
         };
 
-        $scope.$watchCollection(dependentProperties, function(newVal, oldVal, $scope) {
-          assignF($scope);
+        scope.$watchCollection(dependentProperties, function(newVal, oldVal, scope) {
+          assignF(scope);
         });
-        assignF($scope);
+        assignF(scope);
       }
     }
   };

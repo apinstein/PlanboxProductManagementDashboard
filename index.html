@@ -15,6 +15,7 @@
   <body class="container">
   <h1>Product Management</h1>
   <div ng-controller="PMListController">
+    <p>Found {{pmStories.length}} PM stories.</p>
       <table class="table">
           <tr>
               <th>Idea</th>
@@ -25,7 +26,7 @@
           <tr>
               <th>&nbsp;</th>
               <th>Marginal $$$</th>
-              <th>PM Fit</th>
+              <th>Strategic Fit</th>
               <th>Time To Build</th>
               <th>Time Risk</th>
               <th>&nbsp;</th>
@@ -36,6 +37,9 @@
                   <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
                   -->
                   <h4 ng-click="showStoryDetails = !showStoryDetails">{{story.pbStory.name}}</h4>
+                  <div>
+                    <strong>{{story.pbStory.timeframe}}</strong> <em>{{story.storyTags}}</em>
+                  </div>
                   <div ng-show="showStoryDetails">
                     <h5>Tasks</h5>
                     <ul>
@@ -45,7 +49,8 @@
                       </li>
                     </ul>
                     <h5>Description</h5>
-                    <div ng-bind-html="story.pbStory.description"></div>
+                    <!-- this is slow, maybe change it to be onClick... -->
+                    <div xng-bind-html="story.pbStory.description"></div>
                   </div>
               </td>
               <td>
