@@ -59,6 +59,31 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         'pm_risk'    : { '': '?', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
       };
 
+      function updateTimeframe(pbStory) {
+        $http.post('http://www.planbox.com/api/move_story_to_iteration',
+            $.param({
+              'story_id'  : pbStory.id,
+              'timeframe' : pbStory.timeframe,
+              'position'  : 'top'
+            }),
+            {
+              'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
+            })
+             .success(function() { console.log('updated!') })
+             .error(function() { alert('could not save data, refresh and try again') })
+      }
+
+      $scope.prioritize = function() {
+        var pbStory = this.story.pbStory;
+        pbStory.timeframe = 'current';
+        updateTimeframe(pbStory);
+      };
+      $scope.deprioritize = function() {
+        var pbStory = this.story.pbStory;
+        pbStory.timeframe = 'backlog';
+        updateTimeframe(pbStory);
+      };
+
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
         if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return -1;
 
