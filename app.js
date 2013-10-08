@@ -17,7 +17,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
           var pbData = _.filter(data, function (o) { return o.project_id == PlanboxPMProjectId } );
 
           // dev - faster to work with less data
-          //pbData = pbData.slice(0, 5);
+          pbData = pbData.slice(0, 5);
 
           var pmStories = [];
           _.each(pbData, function(o) {
@@ -60,7 +60,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       };
 
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
-        if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
+        if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return -1;
 
         return Math.pow(10,4-parseInt(scope.story.pmInfo.pm_revenue,10)) * Math.pow(5, 4-parseInt(scope.story.pmInfo.pm_fit,10)) / Math.pow(10, parseInt(scope.story.pmInfo.pm_time,10));
       });

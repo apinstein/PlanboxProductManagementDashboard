@@ -3,17 +3,22 @@
   <!-- vim: ts=2 sw=2 :
   -->
   <head>
-    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body class="container">
+    <script src="bower_components/jquery/jquery-min.js"></script>
+
     <script src="bower_components/angular/angular.js"></script>
     <script src="angular-tbUtils.js"></script>
     <script src="bower_components/angular-filters/build/angular-filters.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/lodash/dist/lodash.js"></script>
     <script src="app.js"></script>
-    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-  </head>
-  <body class="container">
+
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
   <h1>Product Management</h1>
+
   <div ng-controller="PMListController">
     <p>Found {{pmStories.length}} PM stories.</p>
       <table class="table">
@@ -36,7 +41,7 @@
                   <!--
                   <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
                   -->
-                  <h4 ng-click="showStoryDetails = !showStoryDetails">{{story.pbStory.name}}</h4>
+                  <h4 ng-click="showStoryDetails = !showStoryDetails"><i ng-class="{ 'glyphicon-thumbs-up': (story.pbStory.timeframe == 'current'), 'glyphicon-ban-circle': (story.pbStory.timeframe == 'backlog') }" class="glyphicon"></i> {{story.pbStory.name}}</h4>
                   <div>
                     <strong>{{story.pbStory.timeframe}}</strong> <em>{{story.storyTags}}</em>
                   </div>
