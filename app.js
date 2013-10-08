@@ -13,7 +13,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         var pbData = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
 
         // dev - faster to work with less data
-        pbData = pbData.slice(0, 5);
+        //pbData = pbData.slice(0, 5);
 
         var pmStories = [];
         _.each(pbData, function(o) {
