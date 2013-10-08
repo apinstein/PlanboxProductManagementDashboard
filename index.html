@@ -17,44 +17,50 @@
   <div ng-controller="PMListController">
       <table class="table">
           <tr>
-              <th>Story</th>
-              <th>PM Revenue</th>
-              <th>PM Time</th>
-              <th>PM Fit</th>
-              <th>PM Risk</th>
+              <th>Idea</th>
+              <th colspan=2>Value</th>
+              <th colspan=2>Cost</th>
               <th>Score</th>
+          </tr>
+          <tr>
+              <th>&nbsp;</th>
+              <th>Marginal $$$</th>
+              <th>PM Fit</th>
+              <th>Time To Build</th>
+              <th>Time Risk</th>
+              <th>&nbsp;</th>
           </tr>
           <tr ng-repeat="story in pmStories" ng-controller="PMItemController">
               <td>
                   <!--
-                  <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.id}}" target="planbox">{{story.name}}</a>
+                  <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
                   -->
-                  <h4 ng-click="showStoryDetails = !showStoryDetails">{{story.name}}</h4>
+                  <h4 ng-click="showStoryDetails = !showStoryDetails">{{story.pbStory.name}}</h4>
                   <div ng-show="showStoryDetails">
                     <h5>Tasks</h5>
                     <ul>
-                      <li ng-repeat="task in story.tasks">
+                      <li ng-repeat="task in story.pbStory.tasks">
                         <strong>{{task.name}}</strong>
                         <p ng-show="task.description">{{task.description}}</p>
                       </li>
                     </ul>
                     <h5>Description</h5>
-                    <div ng-bind-html="story.description"></div>
+                    <div ng-bind-html="story.pbStory.description"></div>
                   </div>
               </td>
               <td>
-                  <select ng-model="story.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
+                  <select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
               </td>
               <td>
-                  <select ng-model="story.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
+                  <select ng-model="story.pmInfo.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
               </td>
               <td>
-                  <select ng-model="story.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
+                  <select ng-model="story.pmInfo.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
               </td>
               <td>
-                  <select ng-model="story.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
+                  <select ng-model="story.pmInfo.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
               </td>
-              <td>{{story.weightedPm}}</td>
+              <td>{{story.pmInfo.weightedPm}}</td>
           </tr>
       </table>
   </div>

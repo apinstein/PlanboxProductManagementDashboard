@@ -10,24 +10,32 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
 
       $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK').success(function(data) {
         // project_id filter doesn't seem to work
-        var pmStories = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
-        //pmStories = pmStories.slice(0, 2);
-        console.log('Example story:', pmStories[0]);
+        var pbData = _.filter(data.content, function (o) { return o.project_id == PlanboxPMProjectId } );
 
-        _.each(pmStories, function(o) {
+        // dev - faster to work with less data
+        pbData = pbData.slice(0, 5);
+
+        var pmStories = [];
+        _.each(pbData, function(o) {
+          var pmInfo = {};
           o.tags = o.tags || '';
           _.each(o.tags.split(','), function(tag) {
-            var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
-            _.each(pmInfo, function(pmTag) {
+            var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
+            _.each(pmInfoLabels, function(pmTag) {
               var mm = null;
               var regex = new RegExp("^"+pmTag+"_([0-9])");
               if (mm = tag.match(regex))
               {
-                  o[pmTag] = mm[1];
+                  pmInfo[pmTag] = mm[1];
               }
             });
           });
+          pmStories.push( {
+            pbStory: o,
+            pmInfo: pmInfo
+          });
         });
+        console.log('Example story:', pmStories[0]);
 
         // ignore stories w/o pm tags
         //pmStories = _.filter(pmStories, function(o) { return typeof o.pm_revenue !== 'undefined' });
@@ -38,16 +46,16 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       $scope.selectOptions = {
         // todo: is this the best place for this data? config?
         // 1 is always "most attractive to do"
-        'pm_revenue' : { '': 'n/a', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
-        'pm_time'    : { '': 'n/a', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
-        'pm_fit'     : { '': 'n/a', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
-        'pm_risk'    : { '': 'n/a', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
+        'pm_revenue' : { '': '?', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
+        'pm_time'    : { '': '?', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
+        'pm_fit'     : { '': '?', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
+        'pm_risk'    : { '': '?', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
       };
 
-      $TBUtils.createComputedProperty($scope, 'story.weightedPm', '[story.pm_revenue,story.pm_time,story.pm_fit,story.pm_risk]', function($scope) {
-        if (!($scope.story.pm_revenue && $scope.story.pm_time && $scope.story.pm_fit)) return 0;
+      $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function($scope) {
+        if (!($scope.story.pmInfo.pm_revenue && $scope.story.pmInfo.pm_time && $scope.story.pmInfo.pm_fit)) return 0;
 
-        return Math.pow(10,4-parseInt($scope.story.pm_revenue,10)) * Math.pow(5, 4-parseInt($scope.story.pm_fit,10)) / Math.pow(10, parseInt($scope.story.pm_time,10));
+        return Math.pow(10,4-parseInt($scope.story.pmInfo.pm_revenue,10)) * Math.pow(5, 4-parseInt($scope.story.pmInfo.pm_fit,10)) / Math.pow(10, parseInt($scope.story.pmInfo.pm_time,10));
       });
 
       $scope.$watch('story', function(updatedStory, oldStory, $scope) {
@@ -74,20 +82,20 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         pbPmTagify(updatedStory);
         $http.post('http://www.planbox.com/api/update_story',
             $.param({
-              'story_id' : updatedStory.id,
-              'name'     : updatedStory.name,
-              'tags'     : updatedStory.tags
+              'story_id' : updatedStory.pbStory.id,
+              'name'     : updatedStory.pbStory.name,
+              'tags'     : updatedStory.pbStory.tags
             }),
             {
               'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
             })
-             .success(function() { console.log('udpated!') })
+             .success(function() { console.log('updated!') })
              .error(function() { alert('could not save data, refresh and try again') })
       }, true);
     });
 
 function pbPmTagify(story) {
-  var tags = story.tags || '';
+  var tags = story.pbStory.tags || '';
   tags = tags.split(',');
 
   // clear existing pm_* tags
@@ -98,12 +106,12 @@ function pbPmTagify(story) {
 
   var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
   _.each(pmInfo, function(pmTag) {
-    if (typeof story[pmTag] !== 'undefined' && story[pmTag])
+    if (typeof story.pmInfo[pmTag] !== 'undefined' && story.pmInfo[pmTag])
     {
-      tags.push(pmTag + '_' + story[pmTag]);
+      tags.push(pmTag + '_' + story.pmInfo[pmTag]);
     }
   });
 
-  story.tags = tags.join(',');
+  story.pbStory.tags = tags.join(',');
 }
 
