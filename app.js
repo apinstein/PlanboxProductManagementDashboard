@@ -21,6 +21,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
           var pbStoryDecorator = {
             decoratorName       : 'pbStoryDecorator',
             isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
+            progressPercent     : function() { return 100 * this.duration() / this.estimate() },
             estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
             duration            : function() {
               return _.reduce(this.tasks, function(sum, task) {
@@ -99,7 +100,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
             decoratorName   : 'pmStoryDecorator',
             estimate        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.estimate() }, 0) },
             duration        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.duration() }, 0) },
-            progressPercent : function() { return this.estimate() / this.duration() }
+            progressPercent : function() { return 100 * this.duration() / this.estimate() }
           };
           decorateList(pmStories, pmStoryDecorator);
 
