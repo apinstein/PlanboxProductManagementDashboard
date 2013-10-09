@@ -17,65 +17,66 @@
 
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
-  <h1>Product Management</h1>
+    <div ng-controller="PMListController">
+      <div style="float: right">Welcome, {{pbUser.name}}</div>
+      <h1>Product Management</h1>
 
-  <div ng-controller="PMListController">
-    <p>Found {{pmStories.length}} PM stories.</p>
-      <table class="table">
-          <tr>
-              <th>Idea</th>
-              <th colspan=2>Value</th>
-              <th colspan=2>Cost</th>
-              <th>Score</th>
-          </tr>
-          <tr>
-              <th>&nbsp;</th>
-              <th>Marginal $$$</th>
-              <th>Strategic Fit</th>
-              <th>Time To Build</th>
-              <th>Time Risk</th>
-              <th>&nbsp;</th>
-          </tr>
-          <tr ng-repeat="story in pmStories" ng-controller="PMItemController">
-              <td>
-                  <!--
-                  <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
-                  -->
-                  <h4 ng-click="showStoryDetails = !showStoryDetails"><i ng-class="{ 'glyphicon-thumbs-up': (story.pbStory.timeframe == 'current'), 'glyphicon-ban-circle': (story.pbStory.timeframe == 'backlog') }" class="glyphicon"></i> {{story.pbStory.name}}</h4>
-                  <div>
-                    <em>{{story.storyTags}}</em>
-                  </div>
-                  <div ng-show="showStoryDetails">
-                    <button class="btn" ng-show="story.pbStory.timeframe != 'current'" ng-click="prioritize()">Make it happen!</button>
-                    <button class="btn" ng-show="story.pbStory.timeframe == 'current'" ng-click="deprioritize()">Maybe later...</button>
-                    <h5>Tasks</h5>
-                    <ul>
-                      <li ng-repeat="task in story.pbStory.tasks">
-                        <strong>{{task.name}}</strong>
-                        <p ng-show="task.description">{{task.description}}</p>
-                      </li>
-                    </ul>
-                    <h5>Description</h5>
-                    <!-- this is slow, maybe change it to be onClick... -->
-                    <div xng-bind-html="story.pbStory.description"></div>
-                  </div>
-              </td>
-              <td>
-                  <select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
-              </td>
-              <td>
-                  <select ng-model="story.pmInfo.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
-              </td>
-              <td>
-                  <select ng-model="story.pmInfo.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
-              </td>
-              <td>
-                  <select ng-model="story.pmInfo.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
-              </td>
-              <td>{{story.pmInfo.weightedPm}}</td>
-          </tr>
-      </table>
-  </div>
+      <p>Found {{pmStories.length}} PM stories.</p>
+        <table class="table">
+            <tr>
+                <th>Idea</th>
+                <th colspan=2>Value</th>
+                <th colspan=2>Cost</th>
+                <th>Score</th>
+            </tr>
+            <tr>
+                <th>&nbsp;</th>
+                <th>Marginal $$$</th>
+                <th>Strategic Fit</th>
+                <th>Time To Build</th>
+                <th>Time Risk</th>
+                <th>&nbsp;</th>
+            </tr>
+            <tr ng-repeat="story in pmStories" ng-controller="PMItemController">
+                <td>
+                    <!--
+                    <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
+                    -->
+                    <h4 ng-click="showStoryDetails = !showStoryDetails"><i ng-class="{ 'glyphicon-thumbs-up': (story.pbStory.timeframe == 'current'), 'glyphicon-ban-circle': (story.pbStory.timeframe == 'backlog') }" class="glyphicon"></i> {{story.pbStory.name}}</h4>
+                    <div>
+                      <em>{{story.storyTags}}</em>
+                    </div>
+                    <div ng-show="showStoryDetails">
+                      <button class="btn" ng-show="story.pbStory.timeframe != 'current'" ng-click="prioritize()">Make it happen!</button>
+                      <button class="btn" ng-show="story.pbStory.timeframe == 'current'" ng-click="deprioritize()">Maybe later...</button>
+                      <h5>Tasks</h5>
+                      <ul>
+                        <li ng-repeat="task in story.pbStory.tasks">
+                          <strong>{{task.name}}</strong>
+                          <p ng-show="task.description">{{task.description}}</p>
+                        </li>
+                      </ul>
+                      <h5>Description</h5>
+                      <!-- this is slow, maybe change it to be onClick... -->
+                      <div xng-bind-html="story.pbStory.description"></div>
+                    </div>
+                </td>
+                <td>
+                    <select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
+                </td>
+                <td>
+                    <select ng-model="story.pmInfo.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
+                </td>
+                <td>
+                    <select ng-model="story.pmInfo.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
+                </td>
+                <td>
+                    <select ng-model="story.pmInfo.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
+                </td>
+                <td>{{story.pmInfo.weightedPm}}</td>
+            </tr>
+        </table>
+    </div>
   </body>
 </html>
 

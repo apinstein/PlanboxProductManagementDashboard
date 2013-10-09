@@ -6,8 +6,12 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
     .constant('PlanboxProductId', '6887')
     .constant('PlanboxPMProjectId', '10467')
     .service('StoryProvider', function($http, $q, PlanboxProductId, PlanboxPMProjectId) {
+      this.loadUser = function() {
+        return $http.jsonp('http://www.planbox.com/api/get_logged_resource?callback=JSON_CALLBACK');
+      };
       // todo: loadStories should retunr a promise and the scope shit should be in the caller
       this.loadStories = function(scope, propName) {
+        // todo: can do in a single request via timeframe[]=current&timeframe[]=backlog...
         var getCurrent = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=current&callback=JSON_CALLBACK');
         var getBacklog = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK');
         $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
@@ -46,8 +50,11 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       };
     })
     .controller('PMListController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
+      $scope.pbUser = {};
       $scope.pmStories = [];
+
       StoryProvider.loadStories($scope, 'pmStories');
+      StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
     })
     .controller('PMItemController', function($http, $scope, $TBUtils) {
       $scope.selectOptions = {
