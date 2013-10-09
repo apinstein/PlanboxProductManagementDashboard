@@ -17,6 +17,39 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
           data = _.union(all.current.data.content, all.backlog.data.content);
 
+          // decorate with my useful functions
+          var pbStoryDecorator = {
+            decoratorName       : 'pbStoryDecorator',
+            isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
+            estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
+            duration            : function() {
+              return _.reduce(this.tasks, function(sum, task) {
+                return sum + task.progressInHours();
+              }, 0);
+            }
+          };
+          decorateList(data, pbStoryDecorator);
+
+          var pbStoryTaskDecorator = {
+            decoratorName   : 'pbStoryTaskDecorator',
+            progressInHours : function() {
+              var durationHours = 0;
+              switch (this.status) {
+                case 'completed':
+                  durationHours = this.duration;
+                  break;
+                case 'pending':
+                default:
+                  durationHours = (this.timer_sum/3600);
+                  break;
+              }
+              return durationHours;
+            }
+          };
+          _.each(data, function(story) {
+            decorateList(story.tasks, pbStoryTaskDecorator);
+          });
+
           // ick- def needs refactoring
           var pbDoStories = _.reject(data, function (o) { return o.project_id == PlanboxPMProjectId });
           scope.doStories = pbDoStories;
@@ -35,7 +68,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
               var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
               _.each(pmInfoLabels, function(pmTag) {
                 var mm = null;
-                var regex = new RegExp("^"+pmTag+"_([0-9])");
+                var regex = new RegExp("^"+pmTag+"_([0-9]+)");
                 if (mm = tag.match(regex))
                 {
                     pmInfo[pmTag] = mm[1];
@@ -62,17 +95,25 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
             pmStories.push(story);
           });
 
+          var pmStoryDecorator = {
+            decoratorName   : 'pmStoryDecorator',
+            estimate        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.estimate() }, 0) },
+            duration        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.duration() }, 0) },
+            progressPercent : function() { return this.estimate() / this.duration() }
+          };
+          decorateList(pmStories, pmStoryDecorator);
+
           console.log('Example story:', pmStories[0]);
           scope[propName] = pmStories;
 
-          // thread together items by pm_master_id
           _.each(pmStories, function(pmStory) {
-            pmStory.doStories = _.select(scope.doStories, function(o) { return o.tags && o.tags.indexOf('pm_master_id_'+pmStory.pmInfo.pm_master_id) !== -1 });
+            // thread together items by pm_master_id
+            pmStory.doStories = _.select(scope.doStories, function(o) { return o.isRelatedToPmMaster(pmStory.pmInfo.pm_master_id) });
           });
         });
       };
     })
-    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
+    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId, $TBUtils) {
       $scope.pbUser = {};
       $scope.pmStories = [];
       $scope.mode = 'manage';
@@ -204,5 +245,24 @@ function pbPmTagify(story) {
   });
 
   story.pbStory.tags = tags.join(',');
+}
+
+function decorateObject(o, decorator) {
+  if (!decorator.decoratorName) throw Error("Decorators must be named");
+  if (o.decoratorName) throw Error("Only one decorator allowed presently.");
+
+  _.extend(o, decorator);
+  console.log('decorate: ', decorator.decoratorName);
+}
+
+// should this scope.watchCollection and auto re-run?
+function decorateList(list, decorator) {
+  _.chain(list)
+    // make decoration idempotent
+    .filter(function(o) { return (typeof o.decoratorName === 'undefined') })
+    .each(function(o) {
+      decorateObject(o, decorator);
+    })
+    ;
 }
 

@@ -97,12 +97,18 @@
           <tr ng-repeat="story in priorityStories" ng-controller="PMPrioritizeListItemController">
             <td>
               {{story.pbStory.name}}
+              <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{story.progressPercent()}}%;">
+                  <span class="sr-only">{{story.progressPercent()}}% Complete</span>
+                </div>
+              </div>
               <ul>
                 <li ng-repeat="doStory in story.doStories">
                   {{doStory.name}}
+                  progress: {{doStory.duration()}}/{{doStory.estimate()}}
                   <ul>
                     <li ng-repeat="task in doStory.tasks">
-                    ({{task.duration}}/{{task.estimate}}) {{task.name}}
+                    ({{task.progressInHours()}}/{{task.estimate}}) {{task.name}}
                     </li>
                   </ul>
                 </li>
