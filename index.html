@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="PlanboxPMApp">
+<html ng-app="PlanboxPMApp" ng-controller="PMAppController">
   <!-- vim: ts=2 sw=2 :
   -->
   <head>
@@ -17,7 +17,7 @@
 
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
-    <div ng-controller="PMListController">
+    <div>
       <div style="float: right">Welcome, {{pbUser.name}}</div>
       <h1>Product Management</h1>
 
@@ -45,7 +45,7 @@
                 <th>Time Risk</th>
                 <th>&nbsp;</th>
             </tr>
-            <tr ng-repeat="story in pmStories" ng-controller="PMItemController">
+            <tr ng-repeat="story in pmStories" ng-controller="PMPrioritizeListItemController">
                 <td>
                     <!--
                     <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
@@ -88,7 +88,16 @@
       <!-- /prioritize -->
 
       <!-- manage -->
-      <div ng-show="mode === 'manage'">
+      <div ng-show="mode === 'manage'" ng-controller="PMManageController">
+        <p>Found {{priorityStories.length}} active stories.</p>
+        <table class="table">
+          <tr>
+            <th>Idea</th>
+          </tr>
+          <tr ng-repeat="story in priorityStories" ng-controller="PMPrioritizeListItemController">
+            <td>{{story.pbStory.name}}</td>
+          </tr>
+        </table>
       </div>
       <!-- /manage -->
 

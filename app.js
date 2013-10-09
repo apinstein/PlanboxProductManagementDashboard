@@ -24,11 +24,11 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
           pbData = pbData.slice(0, 5);
 
           var pmStories = [];
-          _.each(pbData, function(o) {
+          function extractPmInfo(pbStory) {
             var pmInfo = {};
-            o.tags = o.tags || '';
-            _.each(o.tags.split(','), function(tag) {
-              var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
+            pbStory.tags = pbStory.tags || '';
+            _.each(pbStory.tags.split(','), function(tag) {
+              var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
               _.each(pmInfoLabels, function(pmTag) {
                 var mm = null;
                 var regex = new RegExp("^"+pmTag+"_([0-9])");
@@ -38,10 +38,24 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
                 }
               });
             });
-            pmStories.push( {
-              pbStory: o,
-              pmInfo: pmInfo
-            });
+            return pmInfo;
+          };
+          function ensurePmMaster(story) {
+            if (story.pbStory.timeframe !== 'current') return;
+
+            if (!story.pmInfo.pm_master_id)
+            {
+              story.pmInfo.pm_master_id = story.pbStory.id;
+            }
+          };
+
+          _.each(pbData, function(pbStory) {
+            var story = {
+              pbStory : pbStory,
+              pmInfo  : extractPmInfo(pbStory)
+            };
+            ensurePmMaster(story);
+            pmStories.push(story);
           });
 
           console.log('Example story:', pmStories[0]);
@@ -49,7 +63,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         });
       };
     })
-    .controller('PMListController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
+    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
       $scope.pbUser = {};
       $scope.pmStories = [];
       $scope.mode = 'prioritize';
@@ -57,7 +71,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       StoryProvider.loadStories($scope, 'pmStories');
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
     })
-    .controller('PMItemController', function($http, $scope, $TBUtils) {
+    .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.selectOptions = {
         // todo: is this the best place for this data? config?
         // 1 is always "most attractive to do"
@@ -98,8 +112,8 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         return Math.pow(10,4-parseInt(scope.story.pmInfo.pm_revenue,10)) * Math.pow(5, 4-parseInt(scope.story.pmInfo.pm_fit,10)) / Math.pow(10, parseInt(scope.story.pmInfo.pm_time,10));
       });
 
-      $TBUtils.createComputedProperty($scope, 'story.storyTags', 'story.pbStory.tags', function($scope) {
-        return rejectPmTags($scope.story.pbStory.tags);
+      $TBUtils.createComputedProperty($scope, 'story.storyTags', 'story.pbStory.tags', function(scope) {
+        return rejectPmTags(scope.story.pbStory.tags);
       });
 
       $scope.$watch('story', function(updatedStory, oldStory, $scope) {
@@ -136,7 +150,14 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
              .success(function() { console.log('updated!') })
              .error(function() { alert('could not save data, refresh and try again') })
       }, true);
-    });
+    })
+    .controller('PMManageController', function($scope, $TBUtils) {
+      $scope.priorityStories = [];
+      $TBUtils.createComputedProperty($scope, 'priorityStories', '[pmStories,mode]', function(scope) {
+        return _.select($scope.pmStories, function(o) { return o.pbStory.timeframe === 'current' });
+      });
+    })
+    ;
 
 function rejectPmTags(tags) {
   var isString = (typeof tags === 'string');
@@ -165,7 +186,7 @@ function pbPmTagify(story) {
   // clear existing pm_* tags
   tags = rejectPmTags(tags.split(','));
 
-  var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit' ];
+  var pmInfo = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
   _.each(pmInfo, function(pmTag) {
     if (typeof story.pmInfo[pmTag] !== 'undefined' && story.pmInfo[pmTag])
     {
