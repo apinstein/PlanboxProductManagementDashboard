@@ -95,7 +95,19 @@
             <th>Idea</th>
           </tr>
           <tr ng-repeat="story in priorityStories" ng-controller="PMPrioritizeListItemController">
-            <td>{{story.pbStory.name}}</td>
+            <td>
+              {{story.pbStory.name}}
+              <ul>
+                <li ng-repeat="doStory in story.doStories">
+                  {{doStory.name}}
+                  <ul>
+                    <li ng-repeat="task in doStory.tasks">
+                    ({{task.duration}}/{{task.estimate}}) {{task.name}}
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </td>
           </tr>
         </table>
       </div>

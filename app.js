@@ -17,11 +17,15 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
           data = _.union(all.current.data.content, all.backlog.data.content);
 
+          // ick- def needs refactoring
+          var pbDoStories = _.reject(data, function (o) { return o.project_id == PlanboxPMProjectId });
+          scope.doStories = pbDoStories;
+
           // project_id filter doesn't seem to work
-          var pbData = _.filter(data, function (o) { return o.project_id == PlanboxPMProjectId } );
+          var pbPmStories = _.filter(data, function (o) { return o.project_id == PlanboxPMProjectId } );
 
           // dev - faster to work with less data
-          pbData = pbData.slice(0, 5);
+          pbPmStories = pbPmStories.slice(0, 5);
 
           var pmStories = [];
           function extractPmInfo(pbStory) {
@@ -49,7 +53,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
             }
           };
 
-          _.each(pbData, function(pbStory) {
+          _.each(pbPmStories, function(pbStory) {
             var story = {
               pbStory : pbStory,
               pmInfo  : extractPmInfo(pbStory)
@@ -60,13 +64,18 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
 
           console.log('Example story:', pmStories[0]);
           scope[propName] = pmStories;
+
+          // thread together items by pm_master_id
+          _.each(pmStories, function(pmStory) {
+            pmStory.doStories = _.select(scope.doStories, function(o) { return o.tags && o.tags.indexOf('pm_master_id_'+pmStory.pmInfo.pm_master_id) !== -1 });
+          });
         });
       };
     })
     .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
       $scope.pbUser = {};
       $scope.pmStories = [];
-      $scope.mode = 'prioritize';
+      $scope.mode = 'manage';
 
       StoryProvider.loadStories($scope, 'pmStories');
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
