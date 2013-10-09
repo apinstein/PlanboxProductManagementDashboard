@@ -21,7 +21,15 @@
       <div style="float: right">Welcome, {{pbUser.name}}</div>
       <h1>Product Management</h1>
 
-      <p>Found {{pmStories.length}} PM stories.</p>
+      <div class="btn-group">
+        <button class="btn" ng-class="{ 'btn-primary': (mode === 'prioritize')}" ng-click="mode = 'prioritize'">Prioritize</button>
+        <button class="btn" ng-class="{ 'btn-primary': (mode === 'manage')}" ng-click="mode = 'manage'">Manage</button>
+        <button class="btn" ng-class="{ 'btn-primary': (mode === 'do')}" ng-click="mode = 'do'">Do</button>
+      </div>
+
+      <!-- prioritize -->
+      <div ng-show="mode === 'prioritize'">
+        <p>Found {{pmStories.length}} PM stories.</p>
         <table class="table">
             <tr>
                 <th>Idea</th>
@@ -76,6 +84,19 @@
                 <td>{{story.pmInfo.weightedPm}}</td>
             </tr>
         </table>
+      </div>
+      <!-- /prioritize -->
+
+      <!-- manage -->
+      <div ng-show="mode === 'manage'">
+      </div>
+      <!-- /manage -->
+
+      <!-- do -->
+      <div ng-show="mode === 'do'">
+      </div>
+      <!-- /do -->
+
     </div>
   </body>
 </html>

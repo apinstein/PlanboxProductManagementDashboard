@@ -52,6 +52,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
     .controller('PMListController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId) {
       $scope.pbUser = {};
       $scope.pmStories = [];
+      $scope.mode = 'prioritize';
 
       StoryProvider.loadStories($scope, 'pmStories');
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
