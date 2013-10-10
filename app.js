@@ -27,6 +27,9 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
               return _.reduce(this.tasks, function(sum, task) {
                 return sum + task.progressInHours();
               }, 0);
+            },
+            remaining           : function() {
+              return this.estimate() - this.duration();
             }
           };
           decorateList(data, pbStoryDecorator);
@@ -96,10 +99,16 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
             pmStories.push(story);
           });
 
+          function genDoStorySummer(f) {
+            return function() {
+              return _.reduce(this.doStories, function(sum, story) { return sum + story[f]() }, 0);
+            };
+          };
           var pmStoryDecorator = {
             decoratorName   : 'pmStoryDecorator',
-            estimate        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.estimate() }, 0) },
-            duration        : function() { return _.reduce(this.doStories, function(sum, story) { return sum + story.duration() }, 0) },
+            estimate        : genDoStorySummer('estimate'),
+            duration        : genDoStorySummer('duration'),
+            remaining       : genDoStorySummer('remaining'),
             progressPercent : function() { return 100 * this.duration() / this.estimate() }
           };
           decorateList(pmStories, pmStoryDecorator);
@@ -204,6 +213,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
     })
     .controller('PMManageController', function($scope, $TBUtils) {
       $scope.priorityStories = [];
+      $scope.maxProgressBarWidth = 400;
       $TBUtils.createComputedProperty($scope, 'priorityStories', '[pmStories,mode]', function(scope) {
         return _.select($scope.pmStories, function(o) { return o.pbStory.timeframe === 'current' });
       });

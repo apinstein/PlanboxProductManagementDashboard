@@ -52,9 +52,19 @@
           assignF(scope);
         });
         assignF(scope);
-      }
+      },
     }
   };
 
-  angular.module('tb.ngUtils', []).factory('$TBUtils', $TBUtils);
+  angular.module('tb.ngUtils', [])
+    .factory('$TBUtils', $TBUtils)
+    .filter('normalize', function() {
+      return function(input, maxVal, normalizeBasis) {
+        var fraction = input / maxVal;
+        var normalizedVal = fraction * normalizeBasis;
+        console.log('normalzing:', input, 'maxVal:', maxVal, 'normalizeBasis', normalizeBasis, fraction, normalizedVal);
+        return normalizedVal;
+      }
+    })
+    ;
 })(window, window.angular);
