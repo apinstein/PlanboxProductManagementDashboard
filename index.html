@@ -29,7 +29,6 @@
 
       <!-- prioritize -->
       <div ng-show="mode === 'prioritize'">
-        <p>Found {{pmStories.length}} PM stories.</p>
         <table class="table">
             <tr>
                 <th>Idea</th>
@@ -45,7 +44,7 @@
                 <th>Time Risk</th>
                 <th>&nbsp;</th>
             </tr>
-            <tr ng-repeat="story in pmStories" ng-controller="PMPrioritizeListItemController">
+            <tr ng-repeat="story in priorities" ng-controller="PMPrioritizeListItemController">
                 <td>
                     <!--
                     <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
@@ -89,7 +88,7 @@
 
       <!-- manage -->
       <div ng-show="mode === 'manage'" ng-controller="PMManageController">
-        <p>Found {{priorityStories.length}} active stories.</p>
+        <p>Found {{priorities.length}} active stories.</p>
         <table class="table">
           <thead>
             <tr>
@@ -97,7 +96,7 @@
               <th>Progress</th>
             </tr>
           </thead>
-          <tbody ng-repeat="story in priorityStories" ng-controller="PMPrioritizeListItemController">
+          <tbody ng-repeat="story in priorities" ng-controller="PMPrioritizeListItemController">
             <tr>
               <td>
                 {{story.pbStory.name}}
@@ -111,18 +110,18 @@
             </tr>
             <tr ng-repeat="doStory in story.doStories">
               <td style="padding-left: 20px;">
-                {{doStory.name}}
+                <span ng-show="doStory.isPmMaster()">[self]</span> {{doStory.pbStory.name}}
                 <ul>
-                  <li ng-repeat="task in doStory.tasks">
+                  <li ng-repeat="task in doStory.pbStory.tasks">
                   [{{task.progressInHours()|number:2}}/{{task.estimate|number:2}}] {{task.name}}
                   </li>
                 </ul>
               </td>
               <td style="padding-left: 20px;">
-                <div class="progress" style="display: inline-block; width: {{doStory.estimate()|normalize:story.estimate():maxProgressBarWidth}}px; vertical-align: middle;">
-                  <div class="progress-bar" role="progressbar" style="width: {{doStory.progressPercent()}}%;"></div>
+                <div class="progress" style="display: inline-block; width: {{doStory.pbStory.estimate()|normalize:story.estimate():maxProgressBarWidth}}px; vertical-align: middle;">
+                  <div class="progress-bar" role="progressbar" style="width: {{doStory.pbStory.progressPercent()}}%;"></div>
                 </div>
-                {{doStory.remaining()|number:2}} hours remaining...
+                {{doStory.pbStory.remaining()|number:2}} hours remaining...
               </td>
             </tr>
           </tbody>

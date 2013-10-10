@@ -18,75 +18,75 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       };
     })
     .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId, $TBUtils) {
-      $scope.pbUser    = {};
-      $scope.pmStories = [];
-      $scope.mode      = 'manage';
+      $scope.mode             = 'manage';
+      $scope.pbUser           = {};
+      $scope.allPmStoriesById = {};
+      $scope.priorities       = [];
+      $scope.unprioritized    = {
+        incidentals : [],
+        backlog     : []
+        // zendesk, uservoice...???
+      };
 
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
       StoryProvider.loadStories().then(function(allStories) {
-        decorateList(allStories, pbStoryDecorator);
+window.allStories = allStories = allStories.slice(0,50);
 
+        // decorate planbox stories (and tasks)
+        decorateList(allStories, pbStoryDecorator);
         _.each(allStories, function(story) {
           decorateList(story.tasks, pbStoryTaskDecorator);
         });
 
-        // ick- def needs refactoring
-        var pbDoStories = _.reject(allStories, function (o) { return o.project_id == PlanboxPMProjectId });
-        $scope.doStories = pbDoStories;
-
-        // project_id filter doesn't seem to work
-        var pbPmStories = _.filter(allStories, function (o) { return o.project_id == PlanboxPMProjectId } );
-
-        // dev - faster to work with less data
-        pbPmStories = pbPmStories.slice(0, 5);
-
-        var pmStories = [];
-        function extractPmInfo(pbStory) {
-          var pmInfo = {};
-          pbStory.tags = pbStory.tags || '';
-          _.each(pbStory.tags.split(','), function(tag) {
-            var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
-            _.each(pmInfoLabels, function(pmTag) {
-              var mm = null;
-              var regex = new RegExp("^"+pmTag+"_([0-9]+)");
-              if (mm = tag.match(regex))
-              {
-                  pmInfo[pmTag] = mm[1];
-              }
-            });
-          });
-          return pmInfo;
-        };
-        function ensurePmMaster(story) {
-          if (story.pbStory.timeframe !== 'current') return;
-
-          if (!story.pmInfo.pm_master_id)
-          {
-            story.pmInfo.pm_master_id = story.pbStory.id;
-          }
-        };
-
-        _.each(pbPmStories, function(pbStory) {
-          var story = {
-            pbStory : pbStory,
-            pmInfo  : extractPmInfo(pbStory)
+        // construct "pm" wrapped stories and also categorize across prioritized/unprioritized
+        _.each(allStories, function(pbStory) {
+          var pmStory = {
+            name: pbStory.name,
+            pbStory   : pbStory,
+            pmInfo    : pbStory.extractPmInfo(),
+            doStories : []
           };
-          ensurePmMaster(story);
-          pmStories.push(story);
+          decorateObject(pmStory, pmStoryDecorator);
+
+          if (pmStory.isPmMaster())
+          {
+            $scope.priorities.push(pmStory);
+          }
+          else if (pmStory.pbStory.timeframe === 'current' && pmStory.pmInfo.pm_master_id)
+          {
+            // no-op this is a story linked to an existing "pm master"
+          }
+          else if (pmStory.pbStory.timeframe === 'current' && !pmStory.pmInfo.pm_master_id)
+          {
+            $scope.unprioritized.incidentals.push(pmStory);
+          }
+          else if (pmStory.pbStory.timeframe === 'backlog')
+          {
+            $scope.unprioritized.backlog.push(pmStory);
+          }
+          else
+          {
+            console.log('unhandled pmStory setup...', pmStory);
+            throw Error("Unexpected story type....");
+          }
+
+          $scope.allPmStoriesById[pmStory.pbStory.id] = pmStory;
         });
+        console.log('Example story:', _.sample($scope.allPmStoriesById, 1));
 
-        decorateList(pmStories, pmStoryDecorator);
-
-        console.log('Example story:', pmStories[0]);
-        $scope.pmStories = pmStories;
-
-        _.each(pmStories, function(pmStory) {
-          // thread together items by pm_master_id
-          pmStory.doStories = _.select($scope.doStories, function(o) { return o.isRelatedToPmMaster(pmStory.pmInfo.pm_master_id) });
-        });
+        // EPICS: thread together items by pm_master_id
+        _.chain($scope.allPmStoriesById)
+          .filter(function(pmStory) { return pmStory.pmInfo.pm_master_id })
+          .each(function(pmStory) {
+            $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+          })
+        ;
+        console.log($scope.allPmStoriesById);
       });
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
+      console.log('PMPrioritizeListItemController');
+
       $scope.selectOptions = {
         // todo: is this the best place for this data? config?
         // 1 is always "most attractive to do"
@@ -131,6 +131,8 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         return rejectPmTags(scope.story.pbStory.tags);
       });
 
+      return;
+      // this watch is fucked... now that the data is nested it's slow as shit
       $scope.$watch('story', function(updatedStory, oldStory, $scope) {
         // wtf? but ok...
         if (oldStory === updatedStory) return;
@@ -181,13 +183,29 @@ var pbStoryDecorator = {
   isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
   progressPercent     : function() { return 100 * this.duration() / this.estimate() },
   estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
-  duration            : function() {
+  duration: function() {
     return _.reduce(this.tasks, function(sum, task) {
       return sum + task.progressInHours();
     }, 0);
   },
-  remaining           : function() {
+  remaining: function() {
     return this.estimate() - this.duration();
+  },
+  extractPmInfo: function() {
+    var pmInfo = {};
+    this.tags = this.tags || '';
+    _.each(this.tags.split(','), function(tag) {
+      var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
+      _.each(pmInfoLabels, function(pmTag) {
+        var mm = null;
+        var regex = new RegExp("^"+pmTag+"_([0-9]+)");
+        if (mm = tag.match(regex))
+      {
+        pmInfo[pmTag] = mm[1];
+      }
+      });
+    });
+    return pmInfo;
   }
 };
 var pbStoryTaskDecorator = {
@@ -208,7 +226,9 @@ var pbStoryTaskDecorator = {
 };
 function genDoStorySummer(f) {
   return function() {
-    return _.reduce(this.doStories, function(sum, story) { return sum + story[f]() }, 0);
+    return _.reduce(this.doStories, function(sum, story) {
+      return sum + story.pbStory[f]()
+    }, 0);
   };
 };
 var pmStoryDecorator = {
@@ -216,7 +236,16 @@ var pmStoryDecorator = {
   estimate        : genDoStorySummer('estimate'),
   duration        : genDoStorySummer('duration'),
   remaining       : genDoStorySummer('remaining'),
-  progressPercent : function() { return 100 * this.duration() / this.estimate() }
+  progressPercent : function() { return 100 * this.duration() / this.estimate() },
+  isPmMaster: function() { return this.pmInfo.pm_master_id && this.pbStory.id == this.pmInfo.pm_master_id },
+  makePmMaster: function() {
+    if (this.pbStory.timeframe !== 'current') return;
+
+    if (!this.pmInfo.pm_master_id)
+    {
+      this.pmInfo.pm_master_id = this.pbStory.id+"";  // string cast
+    }
+  }
 };
 
 function rejectPmTags(tags) {

@@ -62,7 +62,7 @@
       return function(input, maxVal, normalizeBasis) {
         var fraction = input / maxVal;
         var normalizedVal = fraction * normalizeBasis;
-        console.log('normalzing:', input, 'maxVal:', maxVal, 'normalizeBasis', normalizeBasis, fraction, normalizedVal);
+        //console.log('normalzing:', input, 'maxVal:', maxVal, 'normalizeBasis', normalizeBasis, fraction, normalizedVal);
         return normalizedVal;
       }
     })
