@@ -9,127 +9,82 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       this.loadUser = function() {
         return $http.jsonp('http://www.planbox.com/api/get_logged_resource?callback=JSON_CALLBACK');
       };
-      // todo: loadStories should retunr a promise and the scope shit should be in the caller
-      this.loadStories = function(scope, propName) {
-        // todo: can do in a single request via timeframe[]=current&timeframe[]=backlog...
+      this.loadStories = function() {
         var getCurrent = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=current&callback=JSON_CALLBACK');
         var getBacklog = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK');
-        $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
-          data = _.union(all.current.data.content, all.backlog.data.content);
-
-          // decorate with my useful functions
-          var pbStoryDecorator = {
-            decoratorName       : 'pbStoryDecorator',
-            isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
-            progressPercent     : function() { return 100 * this.duration() / this.estimate() },
-            estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
-            duration            : function() {
-              return _.reduce(this.tasks, function(sum, task) {
-                return sum + task.progressInHours();
-              }, 0);
-            },
-            remaining           : function() {
-              return this.estimate() - this.duration();
-            }
-          };
-          decorateList(data, pbStoryDecorator);
-
-          var pbStoryTaskDecorator = {
-            decoratorName   : 'pbStoryTaskDecorator',
-            progressInHours : function() {
-              var durationHours = 0;
-              switch (this.status) {
-                case 'completed':
-                  durationHours = this.duration;
-                  break;
-                case 'pending':
-                default:
-                  durationHours = (this.timer_sum/3600);
-                  break;
-              }
-              return durationHours;
-            }
-          };
-          _.each(data, function(story) {
-            decorateList(story.tasks, pbStoryTaskDecorator);
-          });
-
-          // ick- def needs refactoring
-          var pbDoStories = _.reject(data, function (o) { return o.project_id == PlanboxPMProjectId });
-          scope.doStories = pbDoStories;
-
-          // project_id filter doesn't seem to work
-          var pbPmStories = _.filter(data, function (o) { return o.project_id == PlanboxPMProjectId } );
-
-          // dev - faster to work with less data
-          pbPmStories = pbPmStories.slice(0, 5);
-
-          var pmStories = [];
-          function extractPmInfo(pbStory) {
-            var pmInfo = {};
-            pbStory.tags = pbStory.tags || '';
-            _.each(pbStory.tags.split(','), function(tag) {
-              var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
-              _.each(pmInfoLabels, function(pmTag) {
-                var mm = null;
-                var regex = new RegExp("^"+pmTag+"_([0-9]+)");
-                if (mm = tag.match(regex))
-                {
-                    pmInfo[pmTag] = mm[1];
-                }
-              });
-            });
-            return pmInfo;
-          };
-          function ensurePmMaster(story) {
-            if (story.pbStory.timeframe !== 'current') return;
-
-            if (!story.pmInfo.pm_master_id)
-            {
-              story.pmInfo.pm_master_id = story.pbStory.id;
-            }
-          };
-
-          _.each(pbPmStories, function(pbStory) {
-            var story = {
-              pbStory : pbStory,
-              pmInfo  : extractPmInfo(pbStory)
-            };
-            ensurePmMaster(story);
-            pmStories.push(story);
-          });
-
-          function genDoStorySummer(f) {
-            return function() {
-              return _.reduce(this.doStories, function(sum, story) { return sum + story[f]() }, 0);
-            };
-          };
-          var pmStoryDecorator = {
-            decoratorName   : 'pmStoryDecorator',
-            estimate        : genDoStorySummer('estimate'),
-            duration        : genDoStorySummer('duration'),
-            remaining       : genDoStorySummer('remaining'),
-            progressPercent : function() { return 100 * this.duration() / this.estimate() }
-          };
-          decorateList(pmStories, pmStoryDecorator);
-
-          console.log('Example story:', pmStories[0]);
-          scope[propName] = pmStories;
-
-          _.each(pmStories, function(pmStory) {
-            // thread together items by pm_master_id
-            pmStory.doStories = _.select(scope.doStories, function(o) { return o.isRelatedToPmMaster(pmStory.pmInfo.pm_master_id) });
-          });
+        return $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
+          return _.union(all.current.data.content, all.backlog.data.content);
         });
       };
     })
     .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId, $TBUtils) {
-      $scope.pbUser = {};
+      $scope.pbUser    = {};
       $scope.pmStories = [];
-      $scope.mode = 'manage';
+      $scope.mode      = 'manage';
 
-      StoryProvider.loadStories($scope, 'pmStories');
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
+      StoryProvider.loadStories().then(function(allStories) {
+        decorateList(allStories, pbStoryDecorator);
+
+        _.each(allStories, function(story) {
+          decorateList(story.tasks, pbStoryTaskDecorator);
+        });
+
+        // ick- def needs refactoring
+        var pbDoStories = _.reject(allStories, function (o) { return o.project_id == PlanboxPMProjectId });
+        $scope.doStories = pbDoStories;
+
+        // project_id filter doesn't seem to work
+        var pbPmStories = _.filter(allStories, function (o) { return o.project_id == PlanboxPMProjectId } );
+
+        // dev - faster to work with less data
+        pbPmStories = pbPmStories.slice(0, 5);
+
+        var pmStories = [];
+        function extractPmInfo(pbStory) {
+          var pmInfo = {};
+          pbStory.tags = pbStory.tags || '';
+          _.each(pbStory.tags.split(','), function(tag) {
+            var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
+            _.each(pmInfoLabels, function(pmTag) {
+              var mm = null;
+              var regex = new RegExp("^"+pmTag+"_([0-9]+)");
+              if (mm = tag.match(regex))
+              {
+                  pmInfo[pmTag] = mm[1];
+              }
+            });
+          });
+          return pmInfo;
+        };
+        function ensurePmMaster(story) {
+          if (story.pbStory.timeframe !== 'current') return;
+
+          if (!story.pmInfo.pm_master_id)
+          {
+            story.pmInfo.pm_master_id = story.pbStory.id;
+          }
+        };
+
+        _.each(pbPmStories, function(pbStory) {
+          var story = {
+            pbStory : pbStory,
+            pmInfo  : extractPmInfo(pbStory)
+          };
+          ensurePmMaster(story);
+          pmStories.push(story);
+        });
+
+        decorateList(pmStories, pmStoryDecorator);
+
+        console.log('Example story:', pmStories[0]);
+        $scope.pmStories = pmStories;
+
+        _.each(pmStories, function(pmStory) {
+          // thread together items by pm_master_id
+          pmStory.doStories = _.select($scope.doStories, function(o) { return o.isRelatedToPmMaster(pmStory.pmInfo.pm_master_id) });
+        });
+      });
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.selectOptions = {
@@ -219,6 +174,50 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       });
     })
     ;
+
+// DECORATORS
+var pbStoryDecorator = {
+  decoratorName       : 'pbStoryDecorator',
+  isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
+  progressPercent     : function() { return 100 * this.duration() / this.estimate() },
+  estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
+  duration            : function() {
+    return _.reduce(this.tasks, function(sum, task) {
+      return sum + task.progressInHours();
+    }, 0);
+  },
+  remaining           : function() {
+    return this.estimate() - this.duration();
+  }
+};
+var pbStoryTaskDecorator = {
+  decoratorName   : 'pbStoryTaskDecorator',
+  progressInHours : function() {
+    var durationHours = 0;
+    switch (this.status) {
+      case 'completed':
+        durationHours = this.duration;
+        break;
+      case 'pending':
+      default:
+        durationHours = (this.timer_sum/3600);
+        break;
+    }
+    return durationHours;
+  }
+};
+function genDoStorySummer(f) {
+  return function() {
+    return _.reduce(this.doStories, function(sum, story) { return sum + story[f]() }, 0);
+  };
+};
+var pmStoryDecorator = {
+  decoratorName   : 'pmStoryDecorator',
+  estimate        : genDoStorySummer('estimate'),
+  duration        : genDoStorySummer('duration'),
+  remaining       : genDoStorySummer('remaining'),
+  progressPercent : function() { return 100 * this.duration() / this.estimate() }
+};
 
 function rejectPmTags(tags) {
   var isString = (typeof tags === 'string');
