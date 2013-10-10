@@ -48,7 +48,7 @@ window.allStories = allStories = allStories.slice(0,50);
           };
           decorateObject(pmStory, pmStoryDecorator);
 
-          if (pmStory.isPmMaster())
+          if (pmStory.pbStory.timeframe === 'current' && pmStory.isPmMaster())
           {
             $scope.priorities.push(pmStory);
           }
@@ -97,15 +97,11 @@ window.allStories = allStories = allStories.slice(0,50);
       };
 
       function updateTimeframe(pbStory) {
-        $http.post('http://www.planbox.com/api/move_story_to_iteration',
-            $.param({
+        $http.jsonp('http://www.planbox.com/api/move_story_to_iteration?callback=JSON_CALLBACK&' + $.param({
               'story_id'  : pbStory.id,
               'timeframe' : pbStory.timeframe,
               'position'  : 'top'
-            }),
-            {
-              'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
-            })
+              }))
              .success(function() { console.log('updated!') })
              .error(function() { alert('could not save data, refresh and try again') })
       }
