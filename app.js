@@ -24,7 +24,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
 
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
       StoryProvider.loadStories().then(function(allStories) {
-window.allStories = allStories = allStories.slice(0,75);
+//window.allStories = allStories = allStories.slice(0,75);
 
         // decorate planbox stories (and tasks)
         decorateList(allStories, pbStoryDecorator);
@@ -228,12 +228,16 @@ var pbStoryDecorator = {
     return this.estimate() - this.duration();
   },
   extractPmInfo: function() {
-    var pmInfo = {};
+    var pmInfo = {
+      pm_revenue   : '',
+      pm_fit       : '',
+      pm_time      : '',
+      pm_risk      : '',
+      pm_master_id : ''
+    };
     this.tags = this.tags || '';
     _.each(this.tags.split(','), function(tag) {
-      var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
-      _.each(pmInfoLabels, function(pmTag) {
-        pmInfo[pmTag] = '';
+      _.each(pmInfo, function(val, pmTag) {
         var mm = null;
         var regex = new RegExp("^"+pmTag+"_([0-9]+)");
         if (mm = tag.match(regex))
