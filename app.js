@@ -145,6 +145,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       $scope.prioritize = function() {
         var pbStory = this.story.pbStory;
         pbStory.timeframe = 'current';
+        this.story.makePmMaster();
         updateTimeframe(pbStory);
       };
       $scope.deprioritize = function() {
@@ -281,8 +282,6 @@ var pmStoryDecorator = {
   hasPmScore: function() { return _.all([this.pmInfo.pm_revenue, this.pmInfo.pm_fit, this.pmInfo.pm_time, this.pmInfo.pm_risk]) },
   isPmMaster: function() { return this.pmInfo.pm_master_id && this.pbStory.id == this.pmInfo.pm_master_id },
   makePmMaster: function() {
-    if (this.pbStory.timeframe !== 'current') return;
-
     if (!this.pmInfo.pm_master_id)
     {
       this.pmInfo.pm_master_id = this.pbStory.id+"";  // string cast
