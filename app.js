@@ -122,13 +122,14 @@ window.allStories = allStories = allStories.slice(0,75);
       $scope.$watch('[unionStoryFilters,scoreFilterMode]', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
+      $scope.showStoryDetails = false;
       $scope.selectOptions = {
         // todo: is this the best place for this data? config?
         // 1 is always "most attractive to do"
-        'pm_revenue' : { '': '?', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
-        'pm_time'    : { '': '?', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
-        'pm_fit'     : { '': '?', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
-        'pm_risk'    : { '': '?', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
+        'pm_revenue' : { '': '-', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
+        'pm_time'    : { '': '-', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
+        'pm_fit'     : { '': '-', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
+        'pm_risk'    : { '': '-', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
       };
 
       function updateTimeframe(pbStory) {
@@ -153,7 +154,7 @@ window.allStories = allStories = allStories.slice(0,75);
       };
 
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
-        if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return -1;
+        if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
 
         return Math.pow(10,4-parseInt(scope.story.pmInfo.pm_revenue,10)) * Math.pow(5, 4-parseInt(scope.story.pmInfo.pm_fit,10)) / Math.pow(10, parseInt(scope.story.pmInfo.pm_time,10));
       });
@@ -232,12 +233,13 @@ var pbStoryDecorator = {
     _.each(this.tags.split(','), function(tag) {
       var pmInfoLabels = [ 'pm_time', 'pm_risk', 'pm_revenue', 'pm_fit', 'pm_master_id' ];
       _.each(pmInfoLabels, function(pmTag) {
+        pmInfo[pmTag] = '';
         var mm = null;
         var regex = new RegExp("^"+pmTag+"_([0-9]+)");
         if (mm = tag.match(regex))
-      {
-        pmInfo[pmTag] = mm[1];
-      }
+        {
+          pmInfo[pmTag] = mm[1];
+        }
       });
     });
     return pmInfo;

@@ -71,10 +71,10 @@
                     <!--
                     <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
                     -->
-                    <h4 ng-click="showStoryDetails = !showStoryDetails">
+                    <span ng-click="showStoryDetails = !showStoryDetails">
                       <i ng-class="story.glyphicon()" class="glyphicon"></i>
                       {{story.pbStory.name}}
-                    </h4>
+                    </span>
                     <div>
                       <em>{{story.storyTags}}</em>
                     </div>
@@ -93,17 +93,21 @@
                       <div xng-bind-html="story.pbStory.description"></div>
                     </div>
                 </td>
-                <td>
-                    <select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select>
+                <td ng-switch on="showStoryDetails">
+                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select></div>
+                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_revenue[story.pmInfo.pm_revenue]}}&nbsp;</div>
                 </td>
-                <td>
-                    <select ng-model="story.pmInfo.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select>
+                <td ng-switch on="showStoryDetails">
+                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_fit" ng-options="value as label for (value, label) in selectOptions.pm_fit"></select></div>
+                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_fit[story.pmInfo.pm_fit]}}&nbsp;</div>
                 </td>
-                <td>
-                    <select ng-model="story.pmInfo.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select>
+                <td ng-switch on="showStoryDetails">
+                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_time" ng-options="value as label for (value, label) in selectOptions.pm_time"></select></div>
+                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_time[story.pmInfo.pm_time]}}&nbsp;</div>
                 </td>
-                <td>
-                    <select ng-model="story.pmInfo.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select>
+                <td ng-switch on="showStoryDetails">
+                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select></div>
+                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_revenue[story.pmInfo.pm_revenue]}}&nbsp;</div>
                 </td>
                 <td>{{story.pmInfo.weightedPm}}</td>
             </tr>
