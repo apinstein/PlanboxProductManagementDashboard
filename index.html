@@ -45,7 +45,6 @@
             <button type="button" class="btn" ng-class="{ 'btn-success': scoreFilterMode == 'unscored_only' }" ng-click="handleClickedOnScoreFilterMode('unscored_only')">Unscored Only</button>
             <button type="button" class="btn" ng-class="{ 'btn-success': scoreFilterMode == 'scored_only' }"   ng-click="handleClickedOnScoreFilterMode('scored_only')">Scored Only</button>
           </div>
-          {{stories.length}} stories
         </span>
 
         <br />
@@ -53,13 +52,13 @@
 
         <table class="table">
             <tr>
-                <th>Idea</th>
+                <th>{{stories.length}} stories match</th>
                 <th colspan=2>Value</th>
                 <th colspan=2>Cost</th>
                 <th>Score</th>
             </tr>
             <tr>
-                <th>&nbsp;</th>
+                <th>Story</th>
                 <th>Marginal $$$</th>
                 <th>Strategic Fit</th>
                 <th>Time To Build</th>
@@ -121,7 +120,7 @@
         <table class="table">
           <thead>
             <tr>
-              <th>Idea</th>
+              <th>Story</th>
               <th>Progress</th>
             </tr>
           </thead>
