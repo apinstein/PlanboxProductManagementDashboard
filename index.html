@@ -121,7 +121,7 @@
           <thead>
             <tr>
               <th>Story</th>
-              <th>Progress</th>
+              <th width="{{maxProgressBarWidth+200}}">Progress</th>
             </tr>
           </thead>
           <tbody ng-repeat="story in priorities" ng-controller="PMPrioritizeListItemController">
@@ -138,7 +138,7 @@
             </tr>
             <tr ng-repeat="doStory in story.doStories">
               <td style="padding-left: 20px;">
-                <span ng-show="doStory.isPmMaster()">[self]</span> {{doStory.pbStory.name}}
+                <span ng-hide="doStory.isPmMaster()">{{doStory.pbStory.name}}</span>
                 <ul>
                   <li ng-repeat="task in doStory.pbStory.tasks">
                   [{{task.progressInHours()|number:2}}/{{task.estimate|number:2}}] {{task.name}}
