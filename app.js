@@ -21,12 +21,6 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       $scope.mode             = 'prioritize';
       $scope.pbUser           = {};
       $scope.allPmStoriesById = {};
-      $scope.priorities       = [];
-      $scope.unprioritized    = {
-        incidentals : [],
-        backlog     : []
-        // zendesk, uservoice...???
-      };
 
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
       StoryProvider.loadStories().then(function(allStories) {
@@ -48,18 +42,6 @@ window.allStories = allStories = allStories.slice(0,75);
           };
           decorateObject(pmStory, pmStoryDecorator);
 
-          switch (pmStory.priorityStatus()) {
-            case 'priority':
-              $scope.priorities.push(pmStory);
-              break;
-            case 'unprioritized_incidental':
-              $scope.unprioritized.incidentals.push(pmStory);
-              break;
-            case 'unprioritized_backlog':
-              $scope.unprioritized.backlog.push(pmStory);
-              break;
-          }
-
           $scope.allPmStoriesById[pmStory.pbStory.id] = pmStory;
         });
         console.log('Example story:', _.sample($scope.allPmStoriesById, 1));
@@ -80,19 +62,19 @@ window.allStories = allStories = allStories.slice(0,75);
         {
           name: 'Priorities',
           enabled: true,
-          storiesExpression: 'priorities',
+          priorityStatus: 'priority',
           glyphicon: 'glyphicon-play'
         },
         {
           name: 'Incidentals',
           enabled: false,
-          storiesExpression: 'unprioritized.incidentals',
+          priorityStatus: 'unprioritized_incidental',
           glyphicon: 'glyphicon-asterisk'
         },
         {
           name: 'Backlog',
           enabled: false,
-          storiesExpression: 'unprioritized.backlog',
+          priorityStatus: 'unprioritized_backlog',
           glyphicon: 'glyphicon-th-list'
         }
       ];
@@ -108,10 +90,16 @@ window.allStories = allStories = allStories.slice(0,75);
       };
 
       function filterStories() {
-        var matches = _.foldl($scope.unionStoryFilters, function(stories, filter) {
-                  if (!filter.enabled) return stories;
-                  return _.union(stories, $scope.$eval(filter.storiesExpression));
-                }, []);
+        var allowedPriorityStatuses = _.chain($scope.unionStoryFilters)
+                                     .filter('enabled')
+                                     .pluck('priorityStatus')
+                                     .value()
+                                     ;
+
+        var matches = _.filter($scope.allPmStoriesById, function(story) {
+          return _.indexOf(allowedPriorityStatuses, story.priorityStatus()) !== -1;
+        });
+
         switch ($scope.scoreFilterMode) {
           case 'any':
             break;
@@ -125,15 +113,12 @@ window.allStories = allStories = allStories.slice(0,75);
         return matches;
       }
 
-      function updateStories() {
+      function updateStories(newVal, oldVal) {
+        if (newVal === oldVal) return;
         $scope.stories = filterStories();
       }
 
-      // watch changes in story collections
-      _.each(['priorities', 'unprioritized.incidentals', 'unprioritized.backlog'], function(watchCollectionPropertyName) {
-        $scope.$watchCollection(watchCollectionPropertyName, updateStories);
-      });
-      // watch filter UX changes
+      $scope.$watchCollection('allPmStoriesById', updateStories);
       $scope.$watch('[unionStoryFilters,scoreFilterMode]', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
@@ -216,6 +201,14 @@ window.allStories = allStories = allStories.slice(0,75);
     })
     .controller('PMManageController', function($scope) {
       $scope.maxProgressBarWidth = 400;
+      $scope.priorities = [];
+      function updatePriorities() {
+        $scope.priorities = _.filter($scope.allPmStoriesById, function(o) { return o.priorityStatus() === 'priority' });
+      };
+      $scope.$watchCollection('allPmStoriesById', function() {
+        updatePriorities();
+      });
+      $scope.$watch('mode', updatePriorities);
     })
     ;
 
