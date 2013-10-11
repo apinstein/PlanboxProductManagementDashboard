@@ -84,7 +84,9 @@ window.allStories = allStories = allStories.slice(0,75);
       });
     })
     .controller('PMPrioritizeController', function($scope) {
-      $scope.storyFilters = [
+      $scope.stories = [];
+      $scope.scoreFilterMode = 'scored_only';
+      $scope.unionStoryFilters = [
         {
           name: 'Priorities',
           enabled: true,
@@ -101,17 +103,31 @@ window.allStories = allStories = allStories.slice(0,75);
           storiesExpression: 'unprioritized.backlog',
         }
       ];
-      $scope.filterUnscoredOnly = false;
-      $scope.stories = [];
+      $scope.handleClickedOnScoreFilterMode = function(clickedMode) {
+        if ($scope.scoreFilterMode === clickedMode)
+        {
+          $scope.scoreFilterMode = 'any';
+        }
+        else
+        {
+          $scope.scoreFilterMode = clickedMode;
+        }
+      };
 
       function filterStories() {
-        var matches = _.foldl($scope.storyFilters, function(stories, filter) {
+        var matches = _.foldl($scope.unionStoryFilters, function(stories, filter) {
                   if (!filter.enabled) return stories;
                   return _.union(stories, $scope.$eval(filter.storiesExpression));
                 }, []);
-        if ($scope.filterUnscoredOnly)
-        {
-          matches = _.filter(matches, function(o) { return !o.hasPmScore() });
+        switch ($scope.scoreFilterMode) {
+          case 'any':
+            break;
+          case 'scored_only':
+            matches = _.filter(matches, function(o) { return o.hasPmScore() });
+            break;
+          case 'unscored_only':
+            matches = _.filter(matches, function(o) { return !o.hasPmScore() });
+            break;
         }
         return matches;
       }
@@ -125,7 +141,7 @@ window.allStories = allStories = allStories.slice(0,75);
         $scope.$watchCollection(watchCollectionPropertyName, updateStories);
       });
       // watch filter UX changes
-      $scope.$watch('[storyFilters,filterUnscoredOnly]', updateStories, true);
+      $scope.$watch('[unionStoryFilters,scoreFilterMode]', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.selectOptions = {
