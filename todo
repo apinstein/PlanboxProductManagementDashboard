@@ -1,0 +1,3 @@
+- changes to pm_* don't trigger watch presently
+   -> doesn't disappear when invalidate scored/unscored only
+   -> doesn't trigger update
