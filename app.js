@@ -18,7 +18,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       };
     })
     .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId, $TBUtils) {
-      $scope.mode             = 'manage';
+      $scope.mode             = 'prioritize';
       $scope.pbUser           = {};
       $scope.allPmStoriesById = {};
       $scope.priorities       = [];
@@ -30,7 +30,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
 
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
       StoryProvider.loadStories().then(function(allStories) {
-window.allStories = allStories = allStories.slice(0,50);
+window.allStories = allStories = allStories.slice(0,75);
 
         // decorate planbox stories (and tasks)
         decorateList(allStories, pbStoryDecorator);
@@ -83,6 +83,32 @@ window.allStories = allStories = allStories.slice(0,50);
         ;
         console.log($scope.allPmStoriesById);
       });
+    })
+    .controller('PMPrioritizeController', function($scope) {
+      $scope.storyFilters = {
+        'priorities'                : true,
+        'unprioritized.incidentals' : false,
+        'unprioritized.backlog'     : false
+      };
+      $scope.stories = [];
+
+      function filterStories() {
+        return _.foldl($scope.storyFilters, function(stories, enabled, collectionProperty) {
+                  if (!enabled) return stories;
+                  return _.union(stories, $scope.$eval(collectionProperty));
+                }, []);
+      }
+
+      function updateStories() {
+        console.log('update');
+        $scope.stories = filterStories();
+      }
+
+      // install watchers for when story lists change
+      _.each($scope.storyFilters, function(val, watchCollectionPropertyName) {
+        $scope.$watchCollection(watchCollectionPropertyName, updateStories);
+      });
+      $scope.$watch('storyFilters', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       console.log('PMPrioritizeListItemController');

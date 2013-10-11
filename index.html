@@ -27,8 +27,22 @@
         <button class="btn" ng-class="{ 'btn-primary': (mode === 'do')}" ng-click="mode = 'do'">Do</button>
       </div>
 
+      <hr />
+
       <!-- prioritize -->
-      <div ng-show="mode === 'prioritize'">
+      <div ng-show="mode === 'prioritize'" ng-controller="PMPrioritizeController">
+        <span>Filter:
+          <div class="btn-group">
+            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters.priorities }"                   ng-click="storyFilters.priorities                   = !storyFilters.priorities">Priorities</button>
+            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters['unprioritized.incidentals'] }" ng-click="storyFilters['unprioritized.incidentals'] = !storyFilters['unprioritized.incidentals']">Incidentals</button>
+            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters['unprioritized.backlog'] }"     ng-click="storyFilters['unprioritized.backlog']     = !storyFilters['unprioritized.backlog']">Backlog</button>
+          </div>
+          {{stories.length}} stories
+        </span>
+
+        <br />
+        <br />
+
         <table class="table">
             <tr>
                 <th>Idea</th>
@@ -44,12 +58,17 @@
                 <th>Time Risk</th>
                 <th>&nbsp;</th>
             </tr>
-            <tr ng-repeat="story in priorities" ng-controller="PMPrioritizeListItemController">
+            <tr ng-repeat="story in stories" ng-controller="PMPrioritizeListItemController">
                 <td>
                     <!--
                     <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
                     -->
-                    <h4 ng-click="showStoryDetails = !showStoryDetails"><i ng-class="{ 'glyphicon-thumbs-up': (story.pbStory.timeframe == 'current'), 'glyphicon-ban-circle': (story.pbStory.timeframe == 'backlog') }" class="glyphicon"></i> {{story.pbStory.name}}</h4>
+                    <h4 ng-click="showstorydetails = !showStoryDetails">
+                      <!--
+                      <i ng-class="{ 'glyphicon-thumbs-up': (story.pbStory.timeframe == 'current'), 'glyphicon-ban-circle': (story.pbStory.timeframe == 'backlog') }" class="glyphicon"></i>
+                      -->
+                      {{story.pbStory.name}}
+                    </h4>
                     <div>
                       <em>{{story.storyTags}}</em>
                     </div>
