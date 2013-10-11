@@ -48,26 +48,16 @@ window.allStories = allStories = allStories.slice(0,75);
           };
           decorateObject(pmStory, pmStoryDecorator);
 
-          if (pmStory.pbStory.timeframe === 'current' && pmStory.isPmMaster())
-          {
-            $scope.priorities.push(pmStory);
-          }
-          else if (pmStory.pbStory.timeframe === 'current' && pmStory.pmInfo.pm_master_id)
-          {
-            // no-op this is a story linked to an existing "pm master"
-          }
-          else if (pmStory.pbStory.timeframe === 'current' && !pmStory.pmInfo.pm_master_id)
-          {
-            $scope.unprioritized.incidentals.push(pmStory);
-          }
-          else if (pmStory.pbStory.timeframe === 'backlog')
-          {
-            $scope.unprioritized.backlog.push(pmStory);
-          }
-          else
-          {
-            console.log('unhandled pmStory setup...', pmStory);
-            throw Error("Unexpected story type....");
+          switch (pmStory.priorityStatus()) {
+            case 'priority':
+              $scope.priorities.push(pmStory);
+              break;
+            case 'unprioritized_incidental':
+              $scope.unprioritized.incidentals.push(pmStory);
+              break;
+            case 'unprioritized_backlog':
+              $scope.unprioritized.backlog.push(pmStory);
+              break;
           }
 
           $scope.allPmStoriesById[pmStory.pbStory.id] = pmStory;
@@ -91,16 +81,19 @@ window.allStories = allStories = allStories.slice(0,75);
           name: 'Priorities',
           enabled: true,
           storiesExpression: 'priorities',
+          glyphicon: 'glyphicon-play'
         },
         {
           name: 'Incidentals',
           enabled: false,
           storiesExpression: 'unprioritized.incidentals',
+          glyphicon: 'glyphicon-asterisk'
         },
         {
           name: 'Backlog',
           enabled: false,
           storiesExpression: 'unprioritized.backlog',
+          glyphicon: 'glyphicon-th-list'
         }
       ];
       $scope.handleClickedOnScoreFilterMode = function(clickedMode) {
@@ -298,6 +291,43 @@ var pmStoryDecorator = {
     if (!this.pmInfo.pm_master_id)
     {
       this.pmInfo.pm_master_id = this.pbStory.id+"";  // string cast
+    }
+  },
+  glyphicon: function() {
+    switch (this.priorityStatus()) {
+      case 'priority':
+        return 'glyphicon-play';
+        break;
+      case 'unprioritized_incidental':
+        return 'glyphicon-asterisk';
+        break;
+      case 'unprioritized_backlog':
+        return 'glyphicon-list';
+        break;
+    }
+  },
+  priorityStatus: function() {
+    if (this.pbStory.timeframe === 'current' && this.isPmMaster())
+    {
+      return 'priority';
+    }
+    else if (this.pbStory.timeframe === 'current' && this.pmInfo.pm_master_id)
+    {
+      // no-op this is a story linked to an existing "pm master"
+      return 'na';
+    }
+    else if (this.pbStory.timeframe === 'current' && !this.pmInfo.pm_master_id)
+    {
+      return 'unprioritized_incidental';
+    }
+    else if (this.pbStory.timeframe === 'backlog')
+    {
+      return 'unprioritized_backlog';
+    }
+    else
+    {
+      console.log('unhandled pmStory setup...', this);
+      throw Error("Unexpected story type....");
     }
   }
 };
