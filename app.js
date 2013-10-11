@@ -57,23 +57,23 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
     })
     .controller('PMPrioritizeController', function($scope) {
       $scope.stories = [];
-      $scope.scoreFilterMode = 'scored_only';
+      $scope.scoreFilterMode = 'unscored_only';
       $scope.unionStoryFilters = [
         {
           name: 'Priorities',
-          enabled: true,
+          enabled: false,
           priorityStatus: 'priority',
           glyphicon: 'glyphicon-play'
         },
         {
           name: 'Incidentals',
-          enabled: false,
+          enabled: true,
           priorityStatus: 'unprioritized_incidental',
           glyphicon: 'glyphicon-asterisk'
         },
         {
           name: 'Backlog',
-          enabled: false,
+          enabled: true,
           priorityStatus: 'unprioritized_backlog',
           glyphicon: 'glyphicon-th-list'
         }

@@ -78,8 +78,14 @@
                       <em>{{story.storyTags}}</em>
                     </div>
                     <div ng-show="showStoryDetails">
-                      <button class="btn" ng-show="story.pbStory.timeframe != 'current'" ng-click="prioritize()">Make it happen!</button>
-                      <button class="btn" ng-show="story.pbStory.timeframe == 'current'" ng-click="deprioritize()">Maybe later...</button>
+                      <button class="btn" ng-show="story.priorityStatus() !== 'priority'" ng-click="prioritize()">
+                        <i class="glyphicon glyphicon-play"></i>
+                        Make it happen!
+                      </button>
+                      <button class="btn" ng-show="story.priorityStatus() === 'priority'" ng-click="deprioritize()">
+                        <i class="glyphicon glyphicon-list"></i>
+                        Move to backlog...
+                      </button>
                       <h5>Tasks</h5>
                       <ul>
                         <li ng-repeat="task in story.pbStory.tasks">
