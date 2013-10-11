@@ -153,6 +153,19 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         updateTimeframe(pbStory);
       };
 
+      $scope.saveStory = function() {
+        var updatedStory = $scope.story;
+        pbPmTagify(updatedStory);
+        $http.jsonp('http://www.planbox.com/api/update_story?callback=JSON_CALLBACK&' + $.param({
+          'story_id' : updatedStory.pbStory.id,
+          'name'     : updatedStory.pbStory.name,
+          'tags'     : updatedStory.pbStory.tags
+        }))
+        .success(function() { console.log('updated!') })
+        .error(function() { alert('could not save data, refresh and try again') })
+        ;
+      };
+
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
         if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
 
@@ -163,9 +176,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         return rejectPmTags(scope.story.pbStory.tags);
       });
 
-      return;
-      // this watch is fucked... now that the data is nested it's slow as shit
-      $scope.$watch('story', function(updatedStory, oldStory, $scope) {
+      $scope.$watch('story.pmInfo', function(updatedStory, oldStory, scope) {
         // wtf? but ok...
         if (oldStory === updatedStory) return;
 
@@ -184,20 +195,9 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
           }
           return changes;
         }
+        scope.saveStory();
         console.log('story changed: ', oldStory, updatedStory, getChanges(oldStory, updatedStory));
 
-        pbPmTagify(updatedStory);
-        $http.post('http://www.planbox.com/api/update_story',
-            $.param({
-              'story_id' : updatedStory.pbStory.id,
-              'name'     : updatedStory.pbStory.name,
-              'tags'     : updatedStory.pbStory.tags
-            }),
-            {
-              'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
-            })
-             .success(function() { console.log('updated!') })
-             .error(function() { alert('could not save data, refresh and try again') })
       }, true);
     })
     .controller('PMManageController', function($scope) {
