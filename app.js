@@ -214,12 +214,8 @@ window.allStories = allStories = allStories.slice(0,75);
              .error(function() { alert('could not save data, refresh and try again') })
       }, true);
     })
-    .controller('PMManageController', function($scope, $TBUtils) {
-      $scope.priorityStories = [];
+    .controller('PMManageController', function($scope) {
       $scope.maxProgressBarWidth = 400;
-      $TBUtils.createComputedProperty($scope, 'priorityStories', '[pmStories,mode]', function(scope) {
-        return _.select($scope.pmStories, function(o) { return o.pbStory.timeframe === 'current' });
-      });
     })
     ;
 
