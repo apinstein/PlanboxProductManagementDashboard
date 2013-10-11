@@ -33,10 +33,12 @@
       <div ng-show="mode === 'prioritize'" ng-controller="PMPrioritizeController">
         <span>Filter:
           <div class="btn-group">
-            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters.priorities }"                   ng-click="storyFilters.priorities                   = !storyFilters.priorities">Priorities</button>
-            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters['unprioritized.incidentals'] }" ng-click="storyFilters['unprioritized.incidentals'] = !storyFilters['unprioritized.incidentals']">Incidentals</button>
-            <button type="button" class="btn" ng-class="{ 'btn-success': storyFilters['unprioritized.backlog'] }"     ng-click="storyFilters['unprioritized.backlog']     = !storyFilters['unprioritized.backlog']">Backlog</button>
+            <button type="button" class="btn" ng-repeat="filter in storyFilters"
+              ng-class="{ 'btn-success': filter.enabled }"
+              ng-click="filter.enabled = !filter.enabled"
+              >{{filter.name}}</button>
           </div>
+          <button type="button" class="btn" ng-class="{ 'btn-success': filterUnscoredOnly }" ng-click="filterUnscoredOnly = !filterUnscoredOnly">Unscored Only</button>
           {{stories.length}} stories
         </span>
 

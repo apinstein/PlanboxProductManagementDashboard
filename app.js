@@ -81,38 +81,53 @@ window.allStories = allStories = allStories.slice(0,75);
             $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
           })
         ;
-        console.log($scope.allPmStoriesById);
       });
     })
     .controller('PMPrioritizeController', function($scope) {
-      $scope.storyFilters = {
-        'priorities'                : true,
-        'unprioritized.incidentals' : false,
-        'unprioritized.backlog'     : false
-      };
+      $scope.storyFilters = [
+        {
+          name: 'Priorities',
+          enabled: true,
+          storiesExpression: 'priorities',
+        },
+        {
+          name: 'Incidentals',
+          enabled: false,
+          storiesExpression: 'unprioritized.incidentals',
+        },
+        {
+          name: 'Backlog',
+          enabled: false,
+          storiesExpression: 'unprioritized.backlog',
+        }
+      ];
+      $scope.filterUnscoredOnly = false;
       $scope.stories = [];
 
       function filterStories() {
-        return _.foldl($scope.storyFilters, function(stories, enabled, collectionProperty) {
-                  if (!enabled) return stories;
-                  return _.union(stories, $scope.$eval(collectionProperty));
+        var matches = _.foldl($scope.storyFilters, function(stories, filter) {
+                  if (!filter.enabled) return stories;
+                  return _.union(stories, $scope.$eval(filter.storiesExpression));
                 }, []);
+        if ($scope.filterUnscoredOnly)
+        {
+          matches = _.filter(matches, function(o) { return !o.hasPmScore() });
+        }
+        return matches;
       }
 
       function updateStories() {
-        console.log('update');
         $scope.stories = filterStories();
       }
 
-      // install watchers for when story lists change
-      _.each($scope.storyFilters, function(val, watchCollectionPropertyName) {
+      // watch changes in story collections
+      _.each(['priorities', 'unprioritized.incidentals', 'unprioritized.backlog'], function(watchCollectionPropertyName) {
         $scope.$watchCollection(watchCollectionPropertyName, updateStories);
       });
-      $scope.$watch('storyFilters', updateStories, true);
+      // watch filter UX changes
+      $scope.$watch('[storyFilters,filterUnscoredOnly]', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
-      console.log('PMPrioritizeListItemController');
-
       $scope.selectOptions = {
         // todo: is this the best place for this data? config?
         // 1 is always "most attractive to do"
@@ -259,6 +274,7 @@ var pmStoryDecorator = {
   duration        : genDoStorySummer('duration'),
   remaining       : genDoStorySummer('remaining'),
   progressPercent : function() { return 100 * this.duration() / this.estimate() },
+  hasPmScore: function() { return _.all([this.pmInfo.pm_revenue, this.pmInfo.pm_fit, this.pmInfo.pm_time, this.pmInfo.pm_risk]) },
   isPmMaster: function() { return this.pmInfo.pm_master_id && this.pbStory.id == this.pmInfo.pm_master_id },
   makePmMaster: function() {
     if (this.pbStory.timeframe !== 'current') return;
@@ -313,7 +329,7 @@ function decorateObject(o, decorator) {
   if (o.decoratorName) throw Error("Only one decorator allowed presently.");
 
   _.extend(o, decorator);
-  console.log('decorate: ', decorator.decoratorName);
+  //console.log('decorate: ', decorator.decoratorName);
 }
 
 // should this scope.watchCollection and auto re-run?
