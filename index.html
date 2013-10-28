@@ -99,8 +99,7 @@
                         </li>
                       </ul>
                       <h5>Description</h5>
-                      <!-- this is slow, maybe change it to be onClick... -->
-                      <div xng-bind-html="story.pbStory.description"></div>
+                      <div ng-if="showStoryDetails" ng-bind-html="story.pbStory.description"></div>
                     </div>
                 </td>
                 <td ng-switch on="showStoryDetails">
