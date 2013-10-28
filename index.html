@@ -111,8 +111,8 @@
                   <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_time[story.pmInfo.pm_time]}}&nbsp;</div>
                 </td>
                 <td ng-switch on="showStoryDetails">
-                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_revenue" ng-options="value as label for (value, label) in selectOptions.pm_revenue"></select></div>
-                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_revenue[story.pmInfo.pm_revenue]}}&nbsp;</div>
+                  <div ng-switch-when="true"><select ng-model="story.pmInfo.pm_risk" ng-options="value as label for (value, label) in selectOptions.pm_risk"></select></div>
+                  <div ng-switch-when="false" ng-click="$parent.showStoryDetails = !showStoryDetails">{{selectOptions.pm_risk[story.pmInfo.pm_risk]}}&nbsp;</div>
                 </td>
                 <td>{{story.pmInfo.weightedPm}}</td>
             </tr>
