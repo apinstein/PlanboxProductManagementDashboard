@@ -139,7 +139,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         'pm_revenue' : { '': '-', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
         'pm_time'    : { '': '-', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
         'pm_fit'     : { '': '-', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
-        'pm_risk'    : { '': '-', '1': 'Sure thing', '2': 'Not too bad', '3': 'I can figure it out', '4': 'What could possibly go wrong?' }
+        'pm_risk'    : { '': '-', '1': 'Sure thing', '2': 'A little tricky', '3': 'A lot tricky', '4': 'Your guess is as good as mine' }
       };
 
       function updateTimeframe(pbStory) {

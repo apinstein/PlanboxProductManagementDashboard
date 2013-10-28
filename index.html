@@ -58,7 +58,8 @@
             <tr>
                 <th>{{stories.length}} stories match</th>
                 <th colspan=2>Value</th>
-                <th colspan=2>Cost</th>
+                <th colspan>Cost</th>
+                <th colspan>Risk</th>
                 <th>Score</th>
             </tr>
             <tr>
@@ -66,7 +67,7 @@
                 <th>Marginal $$$</th>
                 <th>Strategic Fit</th>
                 <th>Time To Build</th>
-                <th>Time Risk</th>
+                <th>Discount from Plan</th>
                 <th>&nbsp;</th>
             </tr>
             <tr ng-repeat="story in stories" ng-controller="PMPrioritizeListItemController">
