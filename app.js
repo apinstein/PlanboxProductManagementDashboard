@@ -56,8 +56,9 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       });
     })
     .controller('PMPrioritizeController', function($scope) {
-      $scope.stories = [];
-      $scope.scoreFilterMode = 'unscored_only';
+      $scope.stories           = [];
+      $scope.scoreFilterMode   = 'unscored_only';
+      $scope.roadmapFilterMode = 'all';
       $scope.unionStoryFilters = [
         {
           name: 'Priorities',
@@ -88,6 +89,9 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
           $scope.scoreFilterMode = clickedMode;
         }
       };
+      $scope.handleClickedOnRoadmapFilterMode = function(clickedMode) {
+          $scope.roadmapFilterMode = ($scope.roadmapFilterMode !== 'all') ? 'all' : 'roadmap_only';
+      };
 
       function filterStories() {
         var allowedPriorityStatuses = _.chain($scope.unionStoryFilters)
@@ -110,6 +114,12 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
             matches = _.filter(matches, function(o) { return !o.hasPmScore() });
             break;
         }
+
+        if ($scope.roadmapFilterMode !== 'all')
+        {
+            matches = _.filter(matches, function(o) { return o.pbStory.isRoadmapItem() });
+        }
+
         return matches;
       }
 
@@ -119,7 +129,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       }
 
       $scope.$watchCollection('allPmStoriesById', updateStories);
-      $scope.$watch('[unionStoryFilters,scoreFilterMode]', updateStories, true);
+      $scope.$watch('[unionStoryFilters,scoreFilterMode,roadmapFilterMode]', updateStories, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.showStoryDetails = false;
@@ -218,6 +228,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
 var pbStoryDecorator = {
   decoratorName       : 'pbStoryDecorator',
   isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
+  isRoadmapItem       : function() { return this.tags && this.tags.indexOf('roadmap') !== -1 },
   progressPercent     : function() { return 100 * this.duration() / this.estimate() },
   estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
   duration: function() {

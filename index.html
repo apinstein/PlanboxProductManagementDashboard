@@ -33,6 +33,10 @@
       <div ng-show="mode === 'prioritize'" ng-controller="PMPrioritizeController">
         <span>Filter:
           <div class="btn-group">
+            <button type="button" class="btn" ng-class="{ 'btn-success': roadmapFilterMode == 'all' }"          ng-click="handleClickedOnRoadmapFilterMode('all')">All</button>
+            <button type="button" class="btn" ng-class="{ 'btn-success': roadmapFilterMode == 'roadmap_only' }" ng-click="handleClickedOnRoadmapFilterMode('roadmap_only')">Roadmap Only</button>
+          </div>
+          <div class="btn-group">
             <button type="button" class="btn" ng-repeat="filter in unionStoryFilters"
               ng-class="{ 'btn-success': filter.enabled }"
               ng-click="filter.enabled = !filter.enabled"
