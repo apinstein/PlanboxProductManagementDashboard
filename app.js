@@ -4,8 +4,7 @@ function ngDumpScopes() {
 
 var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.ngUtils'])
     .constant('PlanboxProductId', '6887')
-    .constant('PlanboxPMProjectId', '10467')
-    .service('StoryProvider', function($http, $q, PlanboxProductId, PlanboxPMProjectId) {
+    .service('StoryProvider', function($http, $q, PlanboxProductId) {
       this.loadUser = function() {
         return $http.jsonp('http://www.planbox.com/api/get_logged_resource?callback=JSON_CALLBACK');
       };
@@ -17,7 +16,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
         });
       };
     })
-    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, PlanboxPMProjectId, $TBUtils) {
+    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, $TBUtils) {
       $scope.mode             = 'prioritize';
       $scope.pbUser           = {};
       $scope.allPmStoriesById = {};
