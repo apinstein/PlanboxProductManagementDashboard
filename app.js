@@ -416,7 +416,7 @@ var pmStoryDecorator = {
   // So we try to calculate the expected annual value of doing a feature, then divide it by cost and discount by risk.
   // @todo nudge score based on 'preferShorter or preferMoreRevenue'????
   pmScore         : function() {
-        if (!this.hasPmScore) return 0;
+        if (!this.hasPmScore()) return 0;
 
         var storyPmInfo = this.pmInfo;
 
