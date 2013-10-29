@@ -108,6 +108,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           $scope.roadmapFilterMode = ($scope.roadmapFilterMode !== 'all') ? 'all' : 'roadmap_only';
       };
 
+      // filters allPmStoriesById vs scope filters and stuff into $scope.stories
       function filterStories() {
         var allowedPriorityStatuses = _.chain($scope.unionStoryFilters)
                                      .filter('enabled')
@@ -135,18 +136,20 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
             matches = _.filter(matches, function(o) { return o.pbStory.isRoadmapItem() });
         }
 
+        $scope.stories = matches;
+
         return matches;
       }
 
       function updateStories(newVal, oldVal) {
         if (newVal === oldVal) return;
-        $scope.stories = filterStories();
+        filterStories();
       }
 
       $scope.$watchCollection('allPmStoriesById', updateStories);
       $scope.$watch('[unionStoryFilters,scoreFilterMode,roadmapFilterMode]', function() {
           saveUXInCookies();
-          updateStories();
+          filterStories();
       }, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
