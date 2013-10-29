@@ -22,7 +22,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $scope.pbUser              = {};
       $scope.pbProducts          = [];
       $scope.selectedPbProductId = getValueFromCookiesWithDefault($cookieStore, 'PMAppController_selectedPbProductId', null);
-      $scope.mode                = 'prioritize';
+      $scope.mode                = getValueFromCookiesWithDefault($cookieStore, 'PMAppController_mode', 'prioritize');
       $scope.allPmStoriesById    = {};
 
       function goToProductId() {
@@ -63,6 +63,9 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $scope.$watch('selectedPbProductId', function(oldVal, newVal, scope) {
           $cookieStore.put('PMAppController_selectedPbProductId', $scope.selectedPbProductId);
           goToProductId();
+      });
+      $scope.$watch('mode', function() {
+          $cookieStore.put('PMAppController_mode', $scope.mode);
       });
 
       // load user/products
