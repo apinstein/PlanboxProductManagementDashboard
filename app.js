@@ -18,10 +18,10 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
         });
       };
     })
-    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, $TBUtils) {
+    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, $TBUtils, $cookieStore) {
       $scope.pbUser              = {};
       $scope.pbProducts          = [];
-      $scope.selectedPbProductId = null;
+      $scope.selectedPbProductId = getValueFromCookiesWithDefault($cookieStore, 'PMAppController_selectedPbProductId', null);
       $scope.mode                = 'prioritize';
       $scope.allPmStoriesById    = {};
 
@@ -61,6 +61,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           });
       }
       $scope.$watch('selectedPbProductId', function(oldVal, newVal, scope) {
+          $cookieStore.put('PMAppController_selectedPbProductId', $scope.selectedPbProductId);
           goToProductId();
       });
 
@@ -68,21 +69,22 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
       StoryProvider.loadProducts().then(function(resp) {
           $scope.pbProducts = resp.data.content;
-          $scope.selectedPbProductId = $scope.pbProducts[0].id;
+
+          // ensure selection
+          if (!_.any($scope.pbProducts, function(o) { return o.id === $scope.selectedPbProductId }))
+          {
+              $scope.selectedPbProductId = $scope.pbProducts[0].id;
+          }
+
           goToProductId();
       });
 
     })
     .controller('PMPrioritizeController', function($scope, $cookieStore) {
-      $cookieStore.getWithDefault = function(key, defaultValue) {
-          var val = $cookieStore.get(key);
-          if (typeof val === 'undefined') return defaultValue;
-          return val;
-      };
       $scope.pmInfo            = pmInfo;
       $scope.stories           = [];
-      $scope.scoreFilterMode   = $cookieStore.getWithDefault('PMPrioritizeController_scoreFilterMode',   'unscored_only');
-      $scope.roadmapFilterMode = $cookieStore.getWithDefault('PMPrioritizeController_roadmapFilterMode', 'all');
+      $scope.scoreFilterMode   = getValueFromCookiesWithDefault($cookieStore, 'PMPrioritizeController_scoreFilterMode',   'unscored_only');
+      $scope.roadmapFilterMode = getValueFromCookiesWithDefault($cookieStore, 'PMPrioritizeController_roadmapFilterMode', 'all');
       function saveUXInCookies() {
           $cookieStore.put('PMPrioritizeController_scoreFilterMode',    $scope.scoreFilterMode);
           $cookieStore.put('PMPrioritizeController_roadmapFilterMode',  $scope.roadmapFilterMode);
@@ -96,19 +98,19 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $scope.unionStoryFilters = [
         {
           name: 'Priorities',
-          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Priorities', false),
+          enabled: getValueFromCookiesWithDefault($cookieStore, 'PMPrioritizeController_unionStoryFilter_Priorities', false),
           priorityStatus: 'priority',
           glyphicon: 'glyphicon-play'
         },
         {
           name: 'Incidentals',
-          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Incidentals', true),
+          enabled: getValueFromCookiesWithDefault($cookieStore, 'PMPrioritizeController_unionStoryFilter_Incidentals', true),
           priorityStatus: 'unprioritized_incidental',
           glyphicon: 'glyphicon-asterisk'
         },
         {
           name: 'Backlog',
-          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Backlog', true),
+          enabled: getValueFromCookiesWithDefault($cookieStore, 'PMPrioritizeController_unionStoryFilter_Backlog', true),
           priorityStatus: 'unprioritized_backlog',
           glyphicon: 'glyphicon-th-list'
         }
@@ -265,6 +267,11 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
     })
     ;
 
+function getValueFromCookiesWithDefault($cookieStore, key, defaultValue) {
+  var val = $cookieStore.get(key);
+  if (typeof val === 'undefined') return defaultValue;
+  return val;
+};
 // PM INFO 
 var pmInfo = {
     // 1 is always "most attractive to do"
