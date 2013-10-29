@@ -2,7 +2,7 @@ function ngDumpScopes() {
   angular.forEach($('.ng-scope'), function(o) { console.log("Scope ID:", angular.element(o).scope().$id, o, angular.element(o).scope()); });
 };
 
-var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
+var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.ngUtils'])
     .constant('PlanboxProductId', '6887')
     .constant('PlanboxPMProjectId', '10467')
     .service('StoryProvider', function($http, $q, PlanboxProductId, PlanboxPMProjectId) {
@@ -55,26 +55,41 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
         ;
       });
     })
-    .controller('PMPrioritizeController', function($scope) {
+    .controller('PMPrioritizeController', function($scope, $cookieStore) {
+      $cookieStore.getWithDefault = function(key, defaultValue) {
+          var val = $cookieStore.get(key);
+          if (typeof val === 'undefined') return defaultValue;
+          return val;
+      };
       $scope.stories           = [];
-      $scope.scoreFilterMode   = 'unscored_only';
-      $scope.roadmapFilterMode = 'all';
+      $scope.scoreFilterMode   = $cookieStore.getWithDefault('PMPrioritizeController_scoreFilterMode',   'unscored_only');
+      $scope.roadmapFilterMode = $cookieStore.getWithDefault('PMPrioritizeController_roadmapFilterMode', 'all');
+      function saveUXInCookies() {
+          $cookieStore.put('PMPrioritizeController_scoreFilterMode',    $scope.scoreFilterMode);
+          $cookieStore.put('PMPrioritizeController_roadmapFilterMode',  $scope.roadmapFilterMode);
+
+          _.each($scope.unionStoryFilters, function(o) {
+              var cookieName = 'PMPrioritizeController_unionStoryFilter_' + o.name;
+              $cookieStore.put(cookieName, o.enabled);
+          });
+      };
+
       $scope.unionStoryFilters = [
         {
           name: 'Priorities',
-          enabled: false,
+          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Priorities', false),
           priorityStatus: 'priority',
           glyphicon: 'glyphicon-play'
         },
         {
           name: 'Incidentals',
-          enabled: true,
+          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Incidentals', true),
           priorityStatus: 'unprioritized_incidental',
           glyphicon: 'glyphicon-asterisk'
         },
         {
           name: 'Backlog',
-          enabled: true,
+          enabled: $cookieStore.getWithDefault('PMPrioritizeController_unionStoryFilter_Backlog', true),
           priorityStatus: 'unprioritized_backlog',
           glyphicon: 'glyphicon-th-list'
         }
@@ -129,7 +144,10 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','tb.ngUtils'])
       }
 
       $scope.$watchCollection('allPmStoriesById', updateStories);
-      $scope.$watch('[unionStoryFilters,scoreFilterMode,roadmapFilterMode]', updateStories, true);
+      $scope.$watch('[unionStoryFilters,scoreFilterMode,roadmapFilterMode]', function() {
+          saveUXInCookies();
+          updateStories();
+      }, true);
     })
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.showStoryDetails = false;

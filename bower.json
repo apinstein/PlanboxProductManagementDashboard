@@ -6,6 +6,7 @@
     "angular": ">=1.2.0-rc.2",
     "angular-sanitize": "1.0.8",
     "angular-filters": "1.0.0",
-    "bootstrap": "~3.0.0"
+    "bootstrap": "~3.0.0",
+    "angular-cookies": "~1.0.8"
   }
 }
