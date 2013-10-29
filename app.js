@@ -206,7 +206,19 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
         if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
 
-        return Math.pow(10,4-parseInt(scope.story.pmInfo.pm_revenue,10)) * Math.pow(5, 4-parseInt(scope.story.pmInfo.pm_fit,10)) / Math.pow(10, parseInt(scope.story.pmInfo.pm_time,10));
+        // integer-ify
+        var pm_revenue = parseInt(scope.story.pmInfo.pm_revenue,10);
+        var pm_fit     = parseInt(scope.story.pmInfo.pm_fit,10);
+        var pm_time    = parseInt(scope.story.pmInfo.pm_time,10);
+        var pm_risk    = parseInt(scope.story.pmInfo.pm_risk,10);
+
+        // weight
+        var pm_revenue_weight = Math.pow(10,4-pm_revenue);
+        var pm_fit_weight     = Math.pow(5, 4-pm_fit);
+        var pm_time_weight    = Math.pow(10, pm_time);
+        var pm_risk_weight    = 1;
+
+        return pm_revenue_weight * pm_fit_weight / pm_time_weight;
       });
 
       $TBUtils.createComputedProperty($scope, 'story.storyTags', 'story.pbStory.tags', function(scope) {

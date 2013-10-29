@@ -71,7 +71,7 @@
                 <th>Discount from Plan</th>
                 <th>&nbsp;</th>
             </tr>
-            <tr ng-repeat="story in stories" ng-controller="PMPrioritizeListItemController">
+            <tr ng-repeat="story in stories | orderBy:'pmInfo.weightedPm':true" ng-controller="PMPrioritizeListItemController">
                 <td>
                     <!--
                     <a ng-href="https://www.planbox.com/initiatives/6887#story_pane_tab=tasks&timeframe=backlog&story_id={{story.pbStory.id}}" target="planbox">{{story.pbStory.name}}</a>
