@@ -116,7 +116,12 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
                                      .value()
                                      ;
 
-        var matches = _.filter($scope.allPmStoriesById, function(story) {
+        var matches = [];
+
+        // remove completed tasks
+        matches = _.filter($scope.allPmStoriesById, function(story) { return story.pbStory.hasMoreTasks() });
+        
+        matches = _.filter(matches, function(story) {
           return _.indexOf(allowedPriorityStatuses, story.priorityStatus()) !== -1;
         });
 
@@ -252,6 +257,8 @@ var pbStoryDecorator = {
   isRoadmapItem       : function() { return this.tags && this.tags.indexOf('roadmap') !== -1 },
   progressPercent     : function() { return 100 * this.duration() / this.estimate() },
   estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
+  // pending, inprogress, completed, delivered (verified in UI), accepted, rejected, released or blocked
+  hasMoreTasks        : function() { return this.status === 'pending'|| this.status === 'inprogress' },
   duration: function() {
     return _.reduce(this.tasks, function(sum, task) {
       return sum + task.progressInHours();
