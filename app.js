@@ -206,19 +206,47 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
         if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
 
-        // integer-ify
-        var pm_revenue = parseInt(scope.story.pmInfo.pm_revenue,10);
-        var pm_fit     = parseInt(scope.story.pmInfo.pm_fit,10);
-        var pm_time    = parseInt(scope.story.pmInfo.pm_time,10);
-        var pm_risk    = parseInt(scope.story.pmInfo.pm_risk,10);
+        var pmInfo = scope.story.pmInfo;
 
-        // weight
-        var pm_revenue_weight = Math.pow(10,4-pm_revenue);
-        var pm_fit_weight     = Math.pow(5, 4-pm_fit);
-        var pm_time_weight    = Math.pow(10, pm_time);
-        var pm_risk_weight    = 1;
+        // PM Weight is effectively an expected ROI.
+        // So we try to calculate the expected annual value of doing a feature, then divide it by cost and discount by risk.
+        var hourlyOpportunityCost = 100;
+        // @todo nudge score based on 'preferShorter or preferMoreRevenue'
 
-        return pm_revenue_weight * pm_fit_weight / pm_time_weight;
+        var pmWeightMap = {
+            // marginal incremental revenue, or cost savings
+            "pm_revenue": {
+                "1": 500000,
+                "2": 100000,
+                "3":  50000,
+                "4":  10000
+            },
+            // rough cost in hours
+            "pm_time": {
+                "1": 4    * hourlyOpportunityCost,
+                "2": 30   * hourlyOpportunityCost,
+                "3": 100  * hourlyOpportunityCost,
+                "4": 300  * hourlyOpportunityCost
+            },
+            // strategic multiplier
+            "pm_fit": {
+                "1": 4.0,
+                "2": 2.0,
+                "3": 1.0,
+                "4": 0.5
+            },
+            // discount
+            "pm_risk": {
+                "1": 1.0,
+                "2": 0.95,
+                "3": 0.75,
+                "4": 0.5
+            }
+        };
+
+
+        var pm_weight = ((pmWeightMap.pm_revenue[pmInfo.pm_revenue] * pmWeightMap.pm_fit[pmInfo.pm_fit]) / pmWeightMap.pm_time[pmInfo.pm_time]) * pmWeightMap.pm_risk[pmInfo.pm_risk];
+        return Math.round(pm_weight);
       });
 
       $TBUtils.createComputedProperty($scope, 'story.storyTags', 'story.pbStory.tags', function(scope) {
