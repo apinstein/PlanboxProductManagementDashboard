@@ -19,7 +19,10 @@
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
 
     <div>
-      <div style="float: right">Welcome, {{pbUser.name}}</div>
+      <div style="float: right; text-align: right">
+        Welcome, {{pbUser.name}}<br />
+        <select ng-model="selectedPbProductId" required ng-options="product.id as product.name for product in pbProducts"></select>
+      </div>
       <h1>Product Management</h1>
 
       <div class="btn-group">

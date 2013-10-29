@@ -3,12 +3,14 @@ function ngDumpScopes() {
 };
 
 var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.ngUtils'])
-    .constant('PlanboxProductId', '6887')
-    .service('StoryProvider', function($http, $q, PlanboxProductId) {
+    .service('StoryProvider', function($http, $q) {
       this.loadUser = function() {
         return $http.jsonp('http://www.planbox.com/api/get_logged_resource?callback=JSON_CALLBACK');
       };
-      this.loadStories = function() {
+      this.loadProducts = function() {
+        return $http.jsonp('http://www.planbox.com/api/get_products?callback=JSON_CALLBACK');
+      };
+      this.loadStories = function(PlanboxProductId) {
         var getCurrent = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=current&callback=JSON_CALLBACK');
         var getBacklog = $http.jsonp('https://www.planbox.com/api/get_stories?product_id=' + PlanboxProductId + '&timeframe=backlog&callback=JSON_CALLBACK');
         return $q.all({ current: getCurrent, backlog: getBacklog }).then(function(all) {
@@ -16,43 +18,60 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
         });
       };
     })
-    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, PlanboxProductId, $TBUtils) {
-      $scope.mode             = 'prioritize';
-      $scope.pbUser           = {};
-      $scope.allPmStoriesById = {};
+    .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, $TBUtils) {
+      $scope.pbUser              = {};
+      $scope.pbProducts          = [];
+      $scope.selectedPbProductId = null;
+      $scope.mode                = 'prioritize';
+      $scope.allPmStoriesById    = {};
 
-      StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
-      StoryProvider.loadStories().then(function(allStories) {
+      function goToProductId() {
+          $scope.allPmStoriesById = {};
+
+          StoryProvider.loadStories($scope.selectedPbProductId).then(function(allStories) {
 //window.allStories = allStories = allStories.slice(0,75);
 
-        // decorate planbox stories (and tasks)
-        decorateList(allStories, pbStoryDecorator);
-        _.each(allStories, function(story) {
-          decorateList(story.tasks, pbStoryTaskDecorator);
-        });
+            // decorate planbox stories (and tasks)
+            decorateList(allStories, pbStoryDecorator);
+            _.each(allStories, function(story) {
+              decorateList(story.tasks, pbStoryTaskDecorator);
+            });
 
-        // construct "pm" wrapped stories and also categorize across prioritized/unprioritized
-        _.each(allStories, function(pbStory) {
-          var pmStory = {
-            name: pbStory.name,
-            pbStory   : pbStory,
-            pmInfo    : pbStory.extractPmInfo(),
-            doStories : []
-          };
-          decorateObject(pmStory, pmStoryDecorator);
+            // construct "pm" wrapped stories and also categorize across prioritized/unprioritized
+            _.each(allStories, function(pbStory) {
+              var pmStory = {
+                name: pbStory.name,
+                pbStory   : pbStory,
+                pmInfo    : pbStory.extractPmInfo(),
+                doStories : []
+              };
+              decorateObject(pmStory, pmStoryDecorator);
 
-          $scope.allPmStoriesById[pmStory.pbStory.id] = pmStory;
-        });
-        console.log('Example story:', _.sample($scope.allPmStoriesById, 1));
+              $scope.allPmStoriesById[pmStory.pbStory.id] = pmStory;
+            });
+            console.log('Example story:', _.sample($scope.allPmStoriesById, 1));
 
-        // EPICS: thread together items by pm_master_id
-        _.chain($scope.allPmStoriesById)
-          .filter(function(pmStory) { return pmStory.pmInfo.pm_master_id })
-          .each(function(pmStory) {
-            $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
-          })
-        ;
+            // EPICS: thread together items by pm_master_id
+            _.chain($scope.allPmStoriesById)
+              .filter(function(pmStory) { return pmStory.pmInfo.pm_master_id })
+              .each(function(pmStory) {
+                $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+              })
+            ;
+          });
+      }
+      $scope.$watch('selectedPbProductId', function(oldVal, newVal, scope) {
+          goToProductId();
       });
+
+      // load user/products
+      StoryProvider.loadUser().then(function(resp) { $scope.pbUser = resp.data.content });
+      StoryProvider.loadProducts().then(function(resp) {
+          $scope.pbProducts = resp.data.content;
+          $scope.selectedPbProductId = $scope.pbProducts[0].id;
+          goToProductId();
+      });
+
     })
     .controller('PMPrioritizeController', function($scope, $cookieStore) {
       $cookieStore.getWithDefault = function(key, defaultValue) {
