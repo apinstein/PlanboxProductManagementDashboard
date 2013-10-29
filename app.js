@@ -61,6 +61,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           if (typeof val === 'undefined') return defaultValue;
           return val;
       };
+      $scope.pmInfo            = pmInfo;
       $scope.stories           = [];
       $scope.scoreFilterMode   = $cookieStore.getWithDefault('PMPrioritizeController_scoreFilterMode',   'unscored_only');
       $scope.roadmapFilterMode = $cookieStore.getWithDefault('PMPrioritizeController_roadmapFilterMode', 'all');
@@ -160,12 +161,10 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
     .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
       $scope.showStoryDetails = false;
       $scope.selectOptions = {
-        // todo: is this the best place for this data? config?
-        // 1 is always "most attractive to do"
-        'pm_revenue' : { '': '-', '1': '$$$$', '2': '$$$', '3': '$$', '4': '$' },
-        'pm_time'    : { '': '-', '1': '<= 1 day', '2': '<= 1 week', '3': '<= 1 month', '4': '> 1 month' },
-        'pm_fit'     : { '': '-', '1': 'Strongly Consistent', '2': 'Consistent', '3': 'Not Consistent', '4': 'Terrible Hack' },
-        'pm_risk'    : { '': '-', '1': 'Sure thing', '2': 'A little tricky', '3': 'A lot tricky', '4': 'Your guess is as good as mine' }
+        'pm_revenue' : pmInfo.pm_revenue.options,
+        'pm_time'    : pmInfo.pm_time.options,
+        'pm_fit'     : pmInfo.pm_fit.options,
+        'pm_risk'    : pmInfo.pm_risk.options
       };
 
       function updateTimeframe(pbStory) {
@@ -204,49 +203,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       };
 
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
-        if (!(scope.story.pmInfo.pm_revenue && scope.story.pmInfo.pm_time && scope.story.pmInfo.pm_fit)) return 0;
-
-        var pmInfo = scope.story.pmInfo;
-
-        // PM Weight is effectively an expected ROI.
-        // So we try to calculate the expected annual value of doing a feature, then divide it by cost and discount by risk.
-        var hourlyOpportunityCost = 100;
-        // @todo nudge score based on 'preferShorter or preferMoreRevenue'
-
-        var pmWeightMap = {
-            // marginal incremental revenue, or cost savings
-            "pm_revenue": {
-                "1": 500000,
-                "2": 100000,
-                "3":  50000,
-                "4":  10000
-            },
-            // rough cost in hours
-            "pm_time": {
-                "1": 4    * hourlyOpportunityCost,
-                "2": 30   * hourlyOpportunityCost,
-                "3": 100  * hourlyOpportunityCost,
-                "4": 300  * hourlyOpportunityCost
-            },
-            // strategic multiplier
-            "pm_fit": {
-                "1": 4.0,
-                "2": 2.0,
-                "3": 1.0,
-                "4": 0.5
-            },
-            // discount
-            "pm_risk": {
-                "1": 1.0,
-                "2": 0.95,
-                "3": 0.75,
-                "4": 0.5
-            }
-        };
-
-
-        var pm_weight = ((pmWeightMap.pm_revenue[pmInfo.pm_revenue] * pmWeightMap.pm_fit[pmInfo.pm_fit]) / pmWeightMap.pm_time[pmInfo.pm_time]) * pmWeightMap.pm_risk[pmInfo.pm_risk];
-        return Math.round(pm_weight);
+        return scope.story.pmScore();
       });
 
       $TBUtils.createComputedProperty($scope, 'story.storyTags', 'story.pbStory.tags', function(scope) {
@@ -289,6 +246,77 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
       $scope.$watch('mode', updatePriorities);
     })
     ;
+
+// PM INFO 
+var pmInfo = {
+    // 1 is always "most attractive to do"
+    "pm_revenue": {
+        "description": "Marginal Revenue or Cost Savings",
+        "options": { 
+            '': '-', 
+            '1': '$$$$', 
+            '2': '$$$', 
+            '3': '$$', 
+            '4': '$' 
+        },
+        "scores": {
+            "1": 500000,
+            "2": 100000,
+            "3":  50000,
+            "4":  10000
+        }
+    },
+    "pm_time": {
+        "description": "Man hours",
+        "options": { 
+            '': '-', 
+            '1': '<= 1 day', 
+            '2': '<= 1 week', 
+            '3': '<= 1 month', 
+            '4': '> 1 month' 
+        },
+        "scores": {
+            "1": 4,
+            "2": 30,
+            "3": 100,
+            "4": 300
+        }
+    },
+    "pm_fit": {
+        "description": "Strategic Fit",
+        "options": { 
+            '': '-', 
+            '1': 'Strongly Consistent', 
+            '2': 'Consistent', 
+            '3': 'Not Consistent', 
+            '4': 'Terrible Hack' 
+        },
+        // value multiplier
+        "scores": {
+            "1": 4.0,
+            "2": 2.0,
+            "3": 1.0,
+            "4": 0.5
+        }
+    },
+    "pm_risk": {
+        "description": "Risk Discount",
+        "options": { 
+            '': '-', 
+            '1': 'Sure thing', 
+            '2': 'A little tricky', 
+            '3': 'A lot tricky', 
+            '4': 'Your guess is as good as mine' 
+        },
+        // value discount
+        "scores": {
+            "1": 1.0,
+            "2": 0.95,
+            "3": 0.75,
+            "4": 0.5
+        }
+    }
+};
 
 // DECORATORS
 var pbStoryDecorator = {
@@ -358,7 +386,21 @@ var pmStoryDecorator = {
   duration        : genDoStorySummer('duration'),
   remaining       : genDoStorySummer('remaining'),
   progressPercent : function() { return 100 * this.duration() / this.estimate() },
-  hasPmScore: function() { return _.all([this.pmInfo.pm_revenue, this.pmInfo.pm_fit, this.pmInfo.pm_time, this.pmInfo.pm_risk]) },
+  hasPmScore      : function() { return _.all([this.pmInfo.pm_revenue, this.pmInfo.pm_fit, this.pmInfo.pm_time, this.pmInfo.pm_risk]) },
+  // PM Weight is effectively an expected ROI, but need not be absolute since it's for comparative purposes only.
+  // So we try to calculate the expected annual value of doing a feature, then divide it by cost and discount by risk.
+  // @todo nudge score based on 'preferShorter or preferMoreRevenue'????
+  pmScore         : function() {
+        if (!this.hasPmScore) return 0;
+
+        var storyPmInfo = this.pmInfo;
+
+        var hourlyOpportunityCost = 100;
+
+        var pm_weight = ((pmInfo.pm_revenue.scores[storyPmInfo.pm_revenue] * pmInfo.pm_fit.scores[storyPmInfo.pm_fit]) / (hourlyOpportunityCost * pmInfo.pm_time.scores[storyPmInfo.pm_time])) * pmInfo.pm_risk.scores[storyPmInfo.pm_risk];
+
+        return Math.round(pm_weight);
+  },
   isPmMaster: function() { return this.pmInfo.pm_master_id && this.pbStory.id == this.pmInfo.pm_master_id },
   makePmMaster: function() {
     if (!this.pmInfo.pm_master_id)

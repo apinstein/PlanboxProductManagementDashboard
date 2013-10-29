@@ -65,10 +65,10 @@
             </tr>
             <tr>
                 <th>Story</th>
-                <th>Marginal $$$</th>
-                <th>Strategic Fit</th>
-                <th>Time To Build</th>
-                <th>Discount from Plan</th>
+                <th>{{pmInfo.pm_revenue.description}}</th>
+                <th>{{pmInfo.pm_fit.description}}</th>
+                <th>{{pmInfo.pm_time.description}}</th>
+                <th>{{pmInfo.pm_risk.description}}</th>
                 <th>&nbsp;</th>
             </tr>
             <tr ng-repeat="story in stories | orderBy:'pmInfo.weightedPm':true" ng-controller="PMPrioritizeListItemController">
