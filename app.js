@@ -351,8 +351,22 @@ var pbStoryDecorator = {
   decoratorName       : 'pbStoryDecorator',
   isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
   isRoadmapItem       : function() { return this.tags && this.tags.indexOf('roadmap') !== -1 },
-  progressPercent     : function() { return 100 * this.duration() / this.estimate() },
-  estimate            : function() { return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0) },
+  progressPercent     : function() {
+      if (!this.hasMoreTasks()) return 100; // prevents NaN from below
+
+      return 100 * this.duration() / this.estimate()
+  },
+  estimate            : function() {
+      // if story is completed; then estimate = duration.
+      if (!this.hasMoreTasks())
+      {
+          return this.duration();
+      }
+      else
+      {
+          return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0)
+      }
+  },
   // pending, inprogress, completed, delivered (verified in UI), accepted, rejected, released or blocked
   hasMoreTasks        : function() { return this.status === 'pending'|| this.status === 'inprogress' },
   duration: function() {
@@ -413,7 +427,11 @@ var pmStoryDecorator = {
   estimate        : genDoStorySummer('estimate'),
   duration        : genDoStorySummer('duration'),
   remaining       : genDoStorySummer('remaining'),
-  progressPercent : function() { return 100 * this.duration() / this.estimate() },
+  progressPercent : function() {
+      if (!this.pbStory.hasMoreTasks()) return 100; // prevents NaN from below
+
+      return 100 * this.duration() / this.estimate()
+  },
   hasPmScore      : function() { return _.all([this.pmInfo.pm_revenue, this.pmInfo.pm_fit, this.pmInfo.pm_time, this.pmInfo.pm_risk]) },
   // PM Weight is effectively an expected ROI, but need not be absolute since it's for comparative purposes only.
   // So we try to calculate the expected annual value of doing a feature, then divide it by cost and discount by risk.
