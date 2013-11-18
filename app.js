@@ -368,7 +368,7 @@ var pbStoryDecorator = {
       }
   },
   // pending, inprogress, completed, delivered (verified in UI), accepted, rejected, released or blocked
-  hasMoreTasks        : function() { return this.status === 'pending'|| this.status === 'inprogress' },
+  hasMoreTasks        : function() { return this.status==='blocked' || this.status === 'pending' || this.status === 'inprogress' },
   duration: function() {
     return _.reduce(this.tasks, function(sum, task) {
       return sum + task.progressInHours();
