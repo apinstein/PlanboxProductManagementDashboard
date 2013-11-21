@@ -364,7 +364,9 @@ var pbStoryDecorator = {
       }
       else
       {
-          return _.reduce(this.tasks, function(sum, task) { return sum + task.estimate }, 0)
+          return _.reduce(this.tasks, function(sum, task) {
+              return sum + task.estimate;
+          }, 0)
       }
   },
   // pending, inprogress, completed, delivered (verified in UI), accepted, rejected, released or blocked

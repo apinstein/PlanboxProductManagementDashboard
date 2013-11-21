@@ -155,7 +155,11 @@
                 <span ng-hide="doStory.isPmMaster()">{{doStory.pbStory.name}}</span>
                 <ul>
                   <li ng-repeat="task in doStory.pbStory.tasks">
-                  [{{task.progressInHours()|number:2}}/{{task.estimate|number:2}}] {{task.name}}
+                    [<span ng-switch="task.status">
+                      <span ng-switch-when="completed">done</span>
+                      <span ng-switch-default>{{task.progressInHours()|number:2}}/{{task.estimate|number:2}}</span>
+                    </span>]
+                    {{task.name}}
                   </li>
                 </ul>
               </td>
