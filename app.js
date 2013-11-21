@@ -1,3 +1,4 @@
+// vim: ts=2 sw=2 :
 function ngDumpScopes() {
   angular.forEach($('.ng-scope'), function(o) { console.log("Scope ID:", angular.element(o).scope().$id, o, angular.element(o).scope()); });
 };
@@ -377,7 +378,24 @@ var pbStoryDecorator = {
     }, 0);
   },
   remaining: function() {
-    return this.estimate() - this.duration();
+    return _.reduce(this.tasks, function(sum, task) {
+      if (task.status === 'completed')
+      {
+        return sum;
+      }
+      else
+      {
+        var progress = task.progressInHours();
+        if (task.estimate > progress)
+        {
+          return sum + (task.estimate - progress);
+        }
+        else
+        {
+          return sum + Math.max(task.estimate/2, 2); // assume another 2 hours, or 1/2 original estimate
+        }
+      }
+    }, 0);
   },
   extractPmInfo: function() {
     var pmInfo = {
