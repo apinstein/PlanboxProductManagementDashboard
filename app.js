@@ -53,10 +53,18 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
             console.log('Example story:', _.sample($scope.allPmStoriesById, 1));
 
             // EPICS: thread together items by pm_master_id
+            var proxyMasterMap = {};
             _.chain($scope.allPmStoriesById)
               .filter(function(pmStory) { return pmStory.pmInfo.pm_master_id })
               .each(function(pmStory) {
-                $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+                try {
+                  $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+                } catch(e) {
+                  console.log("Couldn't find master story in allPmStoriesById, likely due to iteration rollover...", pmStory.name, pmStory);
+                  //var proxyMasterId = pmStory.pbStory.id;
+                  //proxyMasterMap[pmStory.pmInfo.pm_master_id] = proxyMasterId;
+                  //$scope.allPmStoriesById[proxyMasterId];
+                }
               })
             ;
           });
