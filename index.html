@@ -91,7 +91,7 @@
                         <i class="glyphicon glyphicon-play"></i>
                         Make it happen!
                       </button>
-                      <button class="btn" ng-show="story.priorityStatus() === 'priority'" ng-click="deprioritize()">
+                      <button class="btn" ng-show="story.priorityStatus() !== 'unprioritized_backlog'" ng-click="deprioritize()">
                         <i class="glyphicon glyphicon-list"></i>
                         Move to backlog...
                       </button>
