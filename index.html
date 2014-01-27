@@ -138,7 +138,7 @@
               <th width="{{maxProgressBarWidth+200}}">Progress</th>
             </tr>
           </thead>
-          <tbody ng-repeat="story in priorities" ng-controller="PMPrioritizeListItemController">
+          <tbody ng-repeat="story in priorities | orderBy:'pbStory.priority':false" ng-controller="PMPrioritizeListItemController">
             <tr>
               <td>
                 {{story.pbStory.name}}
