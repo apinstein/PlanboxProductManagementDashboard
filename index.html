@@ -33,7 +33,7 @@
 
       <hr />
 
-      <!-- prioritize -->
+      <!-- PRIORITIZE -->
       <div ng-show="mode === 'prioritize'" ng-controller="PMPrioritizeController">
         <span>Filter:
           <div class="btn-group">
@@ -128,7 +128,7 @@
       </div>
       <!-- /prioritize -->
 
-      <!-- manage -->
+      <!-- MANAGE -->
       <div ng-show="mode === 'manage'" ng-controller="PMManageController">
         <p>Found {{priorities.length}} active stories.</p>
         <table class="table">
@@ -139,8 +139,10 @@
             </tr>
           </thead>
           <tbody ng-repeat="story in priorities | orderBy:'pbStory.priority':false" ng-controller="PMPrioritizeListItemController">
+            <!-- PM Master Story -->
             <tr>
               <td>
+                <i ng-click="showStoryDetails = !showStoryDetails" class="glyphicon glyphicon-book"></i>
                 {{story.pbStory.name}}
               </td>
               <td>
@@ -150,9 +152,10 @@
                 {{story.remaining()|number:2}} hours remaining...
               </td>
             </tr>
-            <tr ng-repeat="doStory in story.doStories">
+            <!-- Related stories under the master... -->
+            <tr ng-repeat="doStory in story.doStories" ng-show="showStoryDetails">
               <td style="padding-left: 20px;">
-                <span ng-hide="doStory.isPmMaster()">{{doStory.pbStory.name}}</span>
+                <span ng-hide="doStory.isPmMaster()"><i class="glyphicon glyphicon-file"></i> {{doStory.pbStory.name}}</span>
                 <ul>
                   <li ng-repeat="task in doStory.pbStory.tasks">
                     [<span ng-switch="task.status">
