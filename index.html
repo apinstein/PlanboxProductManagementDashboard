@@ -129,6 +129,7 @@ class added to all .drop elements while dragging
                     <span ng-click="showStoryDetails = !showStoryDetails">
                       <i ng-class="story.glyphicon()" class="glyphicon"></i>
                       {{story.pbStory.name}}
+                      <a href="{{story.pbStory.linkToPlanbox()}}" target="planbox"><i class="glyphicon glyphicon-link"></i></a>
                     </span>
                     <div>
                       <em>{{story.storyTags}}</em>
