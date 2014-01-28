@@ -27,7 +27,11 @@ angular.module('dragAndDrop', [])
           if(drags.length === 0) { drags = document.querySelectorAll( '.drop' ); }
 
           angular.forEach(dndApi.areas(), function ( value, key ) {
-            if(value[0] !== parent($elem, 0)) { value.addClass('draging'); }
+              // THIS is strange -- I think he's trying to prevent drop-on-self but it's not working, for instance
+              // value[0] !== $elem[0] even if they look the same in the console...
+              // not sure what he's tryng to do with the parent thing
+            value.addClass('draging');
+            //if(value[0] !== parent($elem, 0)) { value.addClass('draging'); }
           });
 
           $elem.addClass('on-drag');
