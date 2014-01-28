@@ -58,7 +58,15 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
               .filter(function(pmStory) { return pmStory.pmInfo.pm_master_id })
               .each(function(pmStory) {
                 try {
-                  $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+                  // make sure "self" doStory is FIRST
+                  if (pmStory.pmInfo.pm_master_id == pmStory.pbStory.id) // 'self'
+                  {
+                    $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.unshift(pmStory);
+                  }
+                  else
+                  {
+                    $scope.allPmStoriesById[pmStory.pmInfo.pm_master_id].doStories.push(pmStory);
+                  }
                 } catch(e) {
                   console.log("Couldn't find master story in allPmStoriesById, likely due to iteration rollover...", pmStory.name, pmStory);
                   //var proxyMasterId = pmStory.pbStory.id;
