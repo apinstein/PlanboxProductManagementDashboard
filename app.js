@@ -360,6 +360,7 @@ var pbStoryDecorator = {
   decoratorName       : 'pbStoryDecorator',
   isRelatedToPmMaster : function(pm_master_id) { return this.tags && this.tags.indexOf('pm_master_id_'+pm_master_id) !== -1 },
   isRoadmapItem       : function() { return this.tags && this.tags.indexOf('roadmap') !== -1 },
+  linkToPlanbox       : function() { return 'https://www.planbox.com/stories/' + this.id },
   progressPercent     : function() {
       if (!this.hasMoreTasks()) return 100; // prevents NaN from below
 

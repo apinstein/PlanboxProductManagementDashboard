@@ -142,8 +142,10 @@
             <!-- PM Master Story -->
             <tr>
               <td>
-                <i ng-click="showStoryDetails = !showStoryDetails" class="glyphicon glyphicon-book"></i>
+                <span ng-click="showStoryDetails = !showStoryDetails" class="glyphicon glyphicon-book">
                 {{story.pbStory.name}}
+                </span>
+                <a href="{{story.pbStory.linkToPlanbox()}}" target="planbox"><i class="glyphicon glyphicon-link"></i></a>
               </td>
               <td>
                 <div class="progress" style="display: inline-block; width: {{maxProgressBarWidth}}px;">
