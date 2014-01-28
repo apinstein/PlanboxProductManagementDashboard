@@ -3,7 +3,7 @@ function ngDumpScopes() {
   angular.forEach($('.ng-scope'), function(o) { console.log("Scope ID:", angular.element(o).scope().$id, o, angular.element(o).scope()); });
 };
 
-var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.ngUtils'])
+var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.ngUtils','dragAndDrop'])
     .service('StoryProvider', function($http, $q) {
       this.loadUser = function() {
         return $http.jsonp('http://www.planbox.com/api/get_logged_resource?callback=JSON_CALLBACK');
@@ -18,6 +18,23 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           return _.union(all.current.data.content, all.backlog.data.content);
         });
       };
+      this.saveStory = function(story) {
+        pbPmTagify(story);
+        $http.jsonp('http://www.planbox.com/api/update_story?callback=JSON_CALLBACK&' + $.param({
+          'story_id' : story.pbStory.id,
+          'name'     : story.pbStory.name,
+          'tags'     : story.pbStory.tags
+        }))
+        .success(function() {
+          console.log('successfully saved:', story.pbStory.id, story.pbStory.name);
+        })
+        .error(function() {
+          console.log('error saving:', story.pbStory.id, story.pbStory.name);
+          alert('could not save data, refresh and try again')
+        })
+        ;
+      }
+
     })
     .controller('PMAppController', function($http, $scope, $sanitize, $q, StoryProvider, $TBUtils, $cookieStore) {
       $scope.pbUser              = {};
@@ -198,7 +215,7 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           filterStories();
       }, true);
     })
-    .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils) {
+    .controller('PMPrioritizeListItemController', function($http, $scope, $TBUtils, StoryProvider) {
       $scope.showStoryDetails = false;
       $scope.selectOptions = {
         'pm_revenue' : pmInfo.pm_revenue.options,
@@ -229,17 +246,18 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
         updateTimeframe(pbStory);
       };
 
-      $scope.saveStory = function() {
-        var updatedStory = $scope.story;
-        pbPmTagify(updatedStory);
-        $http.jsonp('http://www.planbox.com/api/update_story?callback=JSON_CALLBACK&' + $.param({
-          'story_id' : updatedStory.pbStory.id,
-          'name'     : updatedStory.pbStory.name,
-          'tags'     : updatedStory.pbStory.tags
-        }))
-        .success(function() { console.log('updated!') })
-        .error(function() { alert('could not save data, refresh and try again') })
-        ;
+      $scope.makeSubtaskOfPMMaster = function(doStory, el) {
+        var oldPmMasterId = doStory.pmInfo.pm_master_id;
+
+        // switch the pm_master_id to "this"
+        doStory.pmInfo.pm_master_id = $scope.story.pmInfo.pm_master_id;
+        StoryProvider.saveStory(doStory);
+
+        // move the doStory from old master to new master
+        _.pull($scope.allPmStoriesById[oldPmMasterId].doStories, doStory);
+        $scope.story.doStories.push(doStory);
+
+        $scope.updatePriorities();
       };
 
       $TBUtils.createComputedProperty($scope, 'story.pmInfo.weightedPm', '[story.pmInfo.pm_revenue,story.pmInfo.pm_time,story.pmInfo.pm_fit,story.pmInfo.pm_risk]', function(scope) {
@@ -269,21 +287,39 @@ var PlanboxPMApp = angular.module('PlanboxPMApp', ['ngSanitize','ngCookies','tb.
           }
           return changes;
         }
-        scope.saveStory();
         console.log('story changed: ', oldStory, updatedStory, getChanges(oldStory, updatedStory));
+        StoryProvider.saveStory($scope.story);
 
       }, true);
     })
-    .controller('PMManageController', function($scope) {
+    .controller('PMManageController', function($scope, StoryProvider) {
       $scope.maxProgressBarWidth = 400;
       $scope.priorities = [];
-      function updatePriorities() {
+      $scope.updatePriorities = function() {
         $scope.priorities = _.filter($scope.allPmStoriesById, function(o) { return o.priorityStatus() === 'priority' });
       };
+      $scope.dndMakeOwnPMMaster = function(doStory, el) {
+        if (doStory.isPmMaster())
+        {
+          // no-op
+          return;
+        }
+
+        var oldPmMasterId = doStory.pmInfo.pm_master_id;
+
+        // switch the pm_master_id to "self"
+        doStory.pmInfo.pm_master_id = doStory.pbStory.id;
+        StoryProvider.saveStory(doStory);
+
+        // move the doStory from old master to new master
+        _.pull($scope.allPmStoriesById[oldPmMasterId].doStories, doStory);
+
+        $scope.updatePriorities();
+      };
       $scope.$watchCollection('allPmStoriesById', function() {
-        updatePriorities();
+        $scope.updatePriorities();
       });
-      $scope.$watch('mode', updatePriorities);
+      $scope.$watch('mode', $scope.updatePriorities);
     })
     ;
 

@@ -4,6 +4,52 @@
   -->
   <head>
     <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <style>
+      [draggable] {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -khtml-user-drag: element;
+    -webkit-user-drag: element;
+}
+
+/*
+drop element
+*/
+.drop {
+    border: 1px dashed #fff;
+}
+
+/*
+drag element
+*/
+.drag {
+    cursor: move;
+}
+
+/*
+element being dragged
+*/
+.on-drag {
+    opacity: 0.6;
+}
+
+/*
+class added to all .drop elements while dragging
+*/
+.draging {
+    background: #ededed;
+    border: 3px dashed #000;
+    border-radius: 10px;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -ms-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+    </style>
   </head>
   <body class="container">
     <script src="bower_components/jquery/jquery.min.js"></script>
@@ -14,6 +60,7 @@
     <script src="bower_components/angular-filters/build/angular-filters.js"></script>
     <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
     <script src="bower_components/lodash/dist/lodash.js"></script>
+    <script src="bower_components/angular-drag-drop/angular-dnd.js"></script>
     <script src="app.js"></script>
 
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -129,9 +176,13 @@
       <!-- /prioritize -->
 
       <!-- MANAGE -->
-      <div ng-show="mode === 'manage'" ng-controller="PMManageController">
+      <div
+        ng-show="mode === 'manage'"
+        ng-controller="PMManageController"
+        drop="dndMakeOwnPMMaster"
+        >
         <p>Found {{priorities.length}} active stories.</p>
-        <table class="table">
+        <table class="table" style="margin: 30px">
           <thead>
             <tr>
               <th>Story</th>
@@ -142,8 +193,13 @@
             <!-- PM Master Story -->
             <tr>
               <td>
-                <span ng-click="showStoryDetails = !showStoryDetails" class="glyphicon glyphicon-book">
-                {{story.pbStory.name}}
+                <span
+                  drag ng-model="story"
+                  drop="makeSubtaskOfPMMaster"
+                  ng-click="showStoryDetails = !showStoryDetails" 
+                  class="glyphicon glyphicon-book"
+                  >
+                  {{story.pbStory.name}}
                 </span>
                 <a href="{{story.pbStory.linkToPlanbox()}}" target="planbox"><i class="glyphicon glyphicon-link"></i></a>
               </td>
@@ -157,7 +213,10 @@
             <!-- Related stories under the master... -->
             <tr ng-repeat="doStory in story.doStories" ng-show="showStoryDetails">
               <td style="padding-left: 20px;">
-                <span ng-hide="doStory.isPmMaster()">
+                <span
+                  drag ng-model="doStory"
+                  ng-hide="doStory.isPmMaster()"
+                  >
                   <i class="glyphicon glyphicon-file"></i>
                   {{doStory.pbStory.name}}
                   <a href="{{doStory.pbStory.linkToPlanbox()}}" target="planbox"><i class="glyphicon glyphicon-link"></i></a>
