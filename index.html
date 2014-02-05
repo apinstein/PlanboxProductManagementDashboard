@@ -222,6 +222,7 @@ class added to all .drop elements while dragging
                   {{doStory.pbStory.name}}
                   <a href="{{doStory.pbStory.linkToPlanbox()}}" target="planbox"><i class="glyphicon glyphicon-link"></i></a>
                 </span>
+                <p>{{doStory.pbStory.status}}</p>
                 <ul>
                   <li ng-repeat="task in doStory.pbStory.tasks">
                     [<span ng-switch="task.status">
