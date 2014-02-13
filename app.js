@@ -445,7 +445,7 @@ var pbStoryDecorator = {
         }
         else
         {
-          return sum + Math.max(task.estimate/2, 2); // assume another 2 hours, or 1/2 original estimate
+          return sum + task.estimate/2; // assume another 2 hours, or 1/2 original estimate
         }
       }
     }, 0);
